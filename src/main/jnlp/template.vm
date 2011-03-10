@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<jnlp spec="1.0+" codebase="http://beautifulcode.eu/tensegrity-klein/" href="eig.jnlp">
+    <information>
+        <title>Elastic Interval Geometry Demo</title>
+        <vendor>Beautiful Code BV</vendor>
+        <description kind="one-line">Experimenting with Elastic Interval Geometry</description>
+        <icon href="?? code http://beautifulcode.eu/tensegrity-klein//tensegrity-klein.jpg" kind="default"/>
+        <shortcut online="false">
+            <desktop/>
+        </shortcut>
+    </information>
+    <resources>
+        <j2se version="1.6+" initial-heap-size="256m" max-heap-size="512m"/>
+        <property name="jnlp.versionEnabled" value="false"/>
+        <extension name="jogl" href="http://download.java.net/media/jogl/builds/archive/jsr-231-1.1.1/webstart/jogl.jnlp"/>
+        $dependencies
+    </resources>
+    <application-desc main-class="$mainClass"/>
+</jnlp>
