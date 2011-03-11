@@ -16,7 +16,6 @@ import eu.beautifulcode.eig.structure.Fabric;
 import eu.beautifulcode.eig.structure.Interval;
 import eu.beautifulcode.eig.structure.Physics;
 import eu.beautifulcode.eig.structure.Span;
-import eu.beautifulcode.eig.structure.TensegritySphereFactory;
 import eu.beautifulcode.eig.structure.Vertebra;
 import eu.beautifulcode.eig.structure.Vertical;
 import eu.beautifulcode.eig.transform.AboveFloor;
@@ -76,7 +75,6 @@ public class TensegrityKlein extends Frame {
     private PointOfView pointOfView = new PointOfView(10);
     private Queue<Runnable> jobs = new ConcurrentLinkedQueue<Runnable>();
     private Positioner positioner = new Positioner(jobs, pointOfView);
-    private DefaultBoundedRangeModel sphereFrequencyModel = new DefaultBoundedRangeModel();
     private DefaultBoundedRangeModel timeModel = new DefaultBoundedRangeModel();
     private DoubleRangeModel gravityModel = new DoubleRangeModel(vertical.getAirGravity(), 100);
     private DoubleRangeModel dragModel = new DoubleRangeModel(vertical.getAirDrag(), 10);
@@ -92,8 +90,6 @@ public class TensegrityKlein extends Frame {
     private Fabric fabric;
     private boolean running = true;
     private boolean physicsActive = true;
-    private IntHolder ringFrequency = new IntHolder(3);
-    private IntHolder tubeLength = new IntHolder(2);
     private boolean recordMovie;
     private int step;
 
@@ -131,8 +127,6 @@ public class TensegrityKlein extends Frame {
         gbc.gridx = 0;
         gbc.weightx = 1;
         p.add(createCylinderPanel(), gbc);
-        gbc.gridy++;
-        p.add(createSpherePanel(), gbc);
         gbc.gridy++;
         p.add(createPhysicsPanel(), gbc);
 //        gbc.gridy++;
@@ -175,86 +169,18 @@ public class TensegrityKlein extends Frame {
         return p;
     }
 
-    private JPanel createSpherePanel() {
-        Runnable refresh = new Runnable() {
-            public void run() {
-                fabric = new TensegritySphereFactory(null).createSphere(sphereFrequencyModel.getValue(), 1);
-                fabric.addTransformation(new AboveFloor(2));
-                fabric.executeTransformations(null);
-            }
-        };
-        JPanel p = new JPanel(new GridBagLayout());
-        p.setBorder(BorderFactory.createTitledBorder("Sphere"));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.gridy = 0;
-        gbc.gridwidth = 2;
-        createButton("Create Sphere", p, gbc, refresh);
-        gbc.gridwidth = 1;
-        gbc.gridy++;
-        sphereFrequencyModel.setMinimum(1);
-        sphereFrequencyModel.setValue(3);
-        sphereFrequencyModel.setMaximum(10);
-        createSlider("Frequency", sphereFrequencyModel, p, gbc, null);
-        return p;
-    }
-
     private JPanel createCylinderPanel() {
         JPanel p = new JPanel(new GridBagLayout());
-        p.setBorder(BorderFactory.createTitledBorder("Cylinder"));
+        p.setBorder(BorderFactory.createTitledBorder("Create"));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.gridy = 0;
         gbc.gridx = 0;
-        createField("Frequency", ringFrequency, p, gbc);
-        createField("Length", tubeLength, p, gbc);
         gbc.gridwidth = 2;
-        createButton("Create Cylinder", p, gbc, new Runnable() {
-            public void run() {
-                fabric = new Fabric(null);
-                System.out.println(String.format("Cylinder: frequency %d, length %d", ringFrequency.value, tubeLength.value));
-                GrowVertebra growVertebra = new GrowVertebra(ringFrequency.value * 2);
-                growVertebra.setSpanMap(spanMap);
-                fabric.addTransformation(growVertebra);
-                fabric.addTransformation(new AboveFloor(0));
-                fabric.executeTransformations(physics);
-                GrowthJob growthJob = new GrowthJob(tubeLength.value - 1);
-                growthJob.start();
-            }
-        });
-//        createButton("Remove Rings", p, gbc, new Runnable() {
-//            public void run() {
-//                fabric.addTransformation(new Fabric.Transformation() {
-//                    public void transform(Fabric fabric) {
-//                        for (Interval interval : fabric.getIntervals()) {
-//                            if (interval.getRole() == Interval.Role.RING_SPRING) {
-//                                fabric.getMods().getIntervalMod().remove(interval);
-//                            }
-//                        }
-//                    }
-//                });
-//            }
-//        });
-        createButton("End to End", p, gbc, new Runnable() {
-            public void run() {
-                if (!fabric.isAnySpanActive()) {
-                    fabric.addTransformation(new RingRemover());
-                    Vertebra vertebraA = fabric.getVertebras().get(fabric.getVertebras().size() - 1);
-                    Vertebra vertebraB = fabric.getVertebras().get(0);
-                    fabric.addTransformation(new ConnectVertebra(vertebraA, vertebraB, false));
-                }
-            }
-        });
-        createButton("Klein Bottle", p, gbc, new Runnable() {
-            public void run() {
-                if (!fabric.isAnySpanActive()) {
-                    fabric.addTransformation(new RingRemover());
-                    Vertebra vertebraA = fabric.getVertebras().get(fabric.getVertebras().size() - 1);
-                    Vertebra vertebraB = fabric.getVertebras().get(0);
-                    fabric.addTransformation(new ConnectVertebra(vertebraA, vertebraB, true));
-                }
-            }
-        });
+        createCylinderButton(10, 16, p, gbc);
+        createCylinderButton(16, 24, p, gbc);
+        createCylinderButton(24, 24, p, gbc);
+        createCylinderButton(30, 60, p, gbc);
         gbc.gridwidth = 1;
         createSlider("ringSpan", ringSpan, p, gbc);
         createSlider("counterSpan", counterSpan, p, gbc);
@@ -263,6 +189,14 @@ public class TensegrityKlein extends Frame {
         createSlider("verticalSpan", verticalSpan, p, gbc);
         createSlider("springSpan", springSpan, p, gbc);
         return p;
+    }
+
+    private void createCylinderButton(final int girth, final int length, JPanel p, GridBagConstraints gbc) {
+        createButton(String.format("%d x %d", girth, length), p, gbc, new Runnable() {
+            public void run() {
+                jobs.add(new KleinBuilder(girth, length));
+            }
+        });
     }
 
     private JPanel createMoviePanel() {
@@ -404,13 +338,32 @@ public class TensegrityKlein extends Frame {
         }
     }
 
-    private class GrowthJob implements Runnable, ActionListener {
-        private int length;
-        private Timer timer = new Timer(300, this);
+    private class KleinBuilder implements Runnable {
+        private int length, width;
 
-        private GrowthJob(int length) {
+        private KleinBuilder(int length, int width) {
             this.length = length;
-            timer.setInitialDelay(300);
+            this.width = width;
+        }
+
+        @Override
+        public void run() {
+            fabric = new Fabric(null);
+            GrowVertebra growVertebra = new GrowVertebra(width * 2);
+            growVertebra.setSpanMap(spanMap);
+            fabric.addTransformation(growVertebra);
+            fabric.addTransformation(new AboveFloor(0));
+            fabric.executeTransformations(physics);
+            new TubeGrower(length).start();
+        }
+    }
+
+    private class TubeGrower implements Runnable, ActionListener {
+        private int length;
+        private Timer timer = new Timer(100, this);
+
+        private TubeGrower(int length) {
+            this.length = length;
         }
 
         public void run() {
@@ -421,17 +374,18 @@ public class TensegrityKlein extends Frame {
                 fabric.addTransformation(growVertebra);
                 length--;
                 if (length <= 0) {
+                    fabric.addTransformation(new RingRemover());
+                    Vertebra vertebraA = fabric.getVertebras().get(fabric.getVertebras().size() - 1);
+                    Vertebra vertebraB = fabric.getVertebras().get(0);
+                    fabric.addTransformation(new ConnectVertebra(vertebraA, vertebraB, true));
                     timer.stop();
                 }
             }
         }
 
+        @Override
         public void actionPerformed(ActionEvent actionEvent) {
             jobs.add(this);
-        }
-
-        public boolean isFinished() {
-            return length == 0;
         }
 
         public void start() {
@@ -464,7 +418,7 @@ public class TensegrityKlein extends Frame {
             floor.display(gl);
             if (recordMovie) {
                 try {
-                    Screenshot.writeToTargaFile(new File("/tmp/Tensegrity" + formatter.format(frameNumber++) + ".tga"), width, height);
+                    Screenshot.writeToTargaFile(new File("/tmp/TK" + formatter.format(frameNumber++) + ".tga"), width, height);
                 }
                 catch (IOException e) {
                     e.printStackTrace(System.out);
@@ -510,10 +464,6 @@ public class TensegrityKlein extends Frame {
             for (Interval interval : fab.getIntervals()) {
                 intervalLabelPainter.visit(interval);
             }
-//            facePainter.preVisit(gl);
-//            for (Face face : fab.getFaces()) {
-//                facePainter.visit(face);
-//            }
         }
     }
 
@@ -594,13 +544,12 @@ public class TensegrityKlein extends Frame {
     static long delay = 10;
 
     public static void main(String[] args) {
-        TensegrityKlein darwinAtHome = new TensegrityKlein();
-        darwinAtHome.setSize(1024, 768);
+        TensegrityKlein tensegrityKlein = new TensegrityKlein();
         pause(100);
-        darwinAtHome.setVisible(true);
-        while (darwinAtHome.running) {
+        tensegrityKlein.setVisible(true);
+        while (tensegrityKlein.running) {
             pause(delay);
-            darwinAtHome.iterate();
+            tensegrityKlein.iterate();
         }
         System.exit(0);
     }
