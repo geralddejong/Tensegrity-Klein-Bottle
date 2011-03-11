@@ -17,7 +17,7 @@ import eu.beautifulcode.eig.structure.Interval;
 import eu.beautifulcode.eig.structure.Physics;
 import eu.beautifulcode.eig.structure.Span;
 import eu.beautifulcode.eig.structure.Vertebra;
-import eu.beautifulcode.eig.structure.Vertical;
+import eu.beautifulcode.eig.structure.VerticalPhysicsConstraints;
 import eu.beautifulcode.eig.transform.AboveFloor;
 import eu.beautifulcode.eig.transform.ConnectVertebra;
 import eu.beautifulcode.eig.transform.GrowVertebra;
@@ -28,6 +28,7 @@ import javax.swing.BorderFactory;
 import javax.swing.BoundedRangeModel;
 import javax.swing.DefaultBoundedRangeModel;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
@@ -41,6 +42,7 @@ import javax.swing.event.DocumentListener;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -50,6 +52,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
@@ -57,6 +61,7 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Queue;
 import java.util.TreeMap;
@@ -68,35 +73,52 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class TensegrityKlein extends Frame {
     private static final float LIGHT_POSITION[] = {1f, 0.1f, 2f, 0.5f};
-    private Vertical vertical = new Vertical();
-    private Physics physics = new Physics(vertical);
+    private VerticalPhysicsConstraints verticalPhysicsConstraints = new VerticalPhysicsConstraints();
+    private Physics physics = new Physics(verticalPhysicsConstraints);
     private GLCanvas canvas = new GLCanvas();
     private Floor floor = new Floor();
     private PointOfView pointOfView = new PointOfView(10);
+    private Map<Interval.Role, Physics.Value> spanMap = new TreeMap<Interval.Role, Physics.Value>();
+    private boolean[] roleVisible = new boolean[Interval.Role.values().length];
     private Queue<Runnable> jobs = new ConcurrentLinkedQueue<Runnable>();
     private Positioner positioner = new Positioner(jobs, pointOfView);
     private DefaultBoundedRangeModel timeModel = new DefaultBoundedRangeModel();
-    private DoubleRangeModel gravityModel = new DoubleRangeModel(vertical.getAirGravity(), 100);
-    private DoubleRangeModel dragModel = new DoubleRangeModel(vertical.getAirDrag(), 10);
-    private DoubleRangeModel subGravityModel = new DoubleRangeModel(vertical.getLandGravity(), 100);
-    private DoubleRangeModel subDragModel = new DoubleRangeModel(vertical.getLandDrag(), 10);
-    private DoubleRangeModel ringSpan = new DoubleRangeModel(new IdealLength(Interval.Role.RING_CABLE, 0.6), 2);
-    private DoubleRangeModel counterSpan = new DoubleRangeModel(new IdealLength(Interval.Role.COUNTER_CABLE, 0.4), 2);
-    private DoubleRangeModel barSpan = new DoubleRangeModel(new IdealLength(Interval.Role.BAR, 1.7), 2);
-    private DoubleRangeModel horizontalSpan = new DoubleRangeModel(new IdealLength(Interval.Role.HORIZONTAL_CABLE, 1.3), 2);
-    private DoubleRangeModel verticalSpan = new DoubleRangeModel(new IdealLength(Interval.Role.VERTICAL_CABLE, 1.65), 2);
-    private DoubleRangeModel springSpan = new DoubleRangeModel(new IdealLength(Interval.Role.RING_SPRING, 1.3), 2);
-    private Map<Interval.Role, Physics.Value> spanMap = new TreeMap<Interval.Role, Physics.Value>();
+    private DoubleRangeModel gravityModel = new DoubleRangeModel(verticalPhysicsConstraints.getAirGravity(), 100);
+    private DoubleRangeModel dragModel = new DoubleRangeModel(verticalPhysicsConstraints.getAirDrag(), 10);
+    private DoubleRangeModel subGravityModel = new DoubleRangeModel(verticalPhysicsConstraints.getLandGravity(), 100);
+    private DoubleRangeModel subDragModel = new DoubleRangeModel(verticalPhysicsConstraints.getLandDrag(), 10);
+    private IntervalFamily ring = new IntervalFamily(Interval.Role.RING_CABLE, 0.6, 2);
+    private IntervalFamily counter = new IntervalFamily(Interval.Role.COUNTER_CABLE, 0.4, 2);
+    private IntervalFamily bar = new IntervalFamily(Interval.Role.BAR, 1.7, 2);
+    private IntervalFamily horizontal = new IntervalFamily(Interval.Role.HORIZONTAL_CABLE, 1.3, 2);
+    private IntervalFamily vertical = new IntervalFamily(Interval.Role.VERTICAL_CABLE, 1.65, 2);
     private Fabric fabric;
     private boolean running = true;
     private boolean physicsActive = true;
     private boolean recordMovie;
     private int step;
 
+    class IntervalFamily {
+        private Interval.Role intervalRole;
+        private DoubleRangeModel doubleRangeModel;
+
+        IntervalFamily(Interval.Role intervalRole, double initialValue, double rangeFactor) {
+            this.intervalRole = intervalRole;
+            this.doubleRangeModel = new DoubleRangeModel(new IdealLength(intervalRole, initialValue), rangeFactor);
+            spanMap.put(intervalRole, doubleRangeModel.getPhysicsValue());
+        }
+
+        void setRoleVisible(boolean visible) {
+            roleVisible[intervalRole.ordinal()] = visible;
+        }
+    }
+
     public TensegrityKlein() {
         super("Tensegrity Demo");
 //        floor.setMiddle(pointOfView.getFocus());
+        spanMap.put(Interval.Role.RING_SPRING, new IdealLength(Interval.Role.RING_SPRING, 1.3));
         canvas.setFocusable(true);
+        Arrays.fill(roleVisible, true);
         GLViewPlatform viewPlatform = new GLViewPlatform(new Renderer(), pointOfView, 1, 180);
         canvas.addGLEventListener(viewPlatform);
         canvas.requestFocus();
@@ -110,12 +132,6 @@ public class TensegrityKlein extends Frame {
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         setSize(screenSize.width, screenSize.height);
         wireUp();
-        spanMap.put(Interval.Role.RING_CABLE, ringSpan.getPhysicsValue());
-        spanMap.put(Interval.Role.COUNTER_CABLE, counterSpan.getPhysicsValue());
-        spanMap.put(Interval.Role.BAR, barSpan.getPhysicsValue());
-        spanMap.put(Interval.Role.RING_SPRING, springSpan.getPhysicsValue());
-        spanMap.put(Interval.Role.HORIZONTAL_CABLE, horizontalSpan.getPhysicsValue());
-        spanMap.put(Interval.Role.VERTICAL_CABLE, verticalSpan.getPhysicsValue());
     }
 
     private JPanel createControlPanel() {
@@ -143,29 +159,6 @@ public class TensegrityKlein extends Frame {
             }
         });
         gbc.gridwidth = 1;
-        p.setPreferredSize(new Dimension(300, 600));
-        return p;
-    }
-
-    private JPanel createPhysicsPanel() {
-        JPanel p = new JPanel(new GridBagLayout());
-        p.setBorder(BorderFactory.createTitledBorder("Physics"));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.gridy = 0;
-        timeModel.setMinimum(0);
-        timeModel.setValue(10);
-        timeModel.setMaximum(50);
-        physics.setIterations(timeModel.getValue());
-        createSlider("Time", timeModel, p, gbc, new Runnable() {
-            public void run() {
-                physics.setIterations(timeModel.getValue());
-            }
-        });
-        createSlider("Gravity", gravityModel, p, gbc);
-        createSlider("Drag", dragModel, p, gbc);
-        createSlider("SubGravity", subGravityModel, p, gbc);
-        createSlider("SubDrag", subDragModel, p, gbc);
         return p;
     }
 
@@ -176,22 +169,21 @@ public class TensegrityKlein extends Frame {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.gridy = 0;
         gbc.gridx = 0;
-        gbc.gridwidth = 2;
         createCylinderButton(10, 16, p, gbc);
+        createCylinderButton(10, 60, p, gbc);
         createCylinderButton(16, 24, p, gbc);
         createCylinderButton(24, 24, p, gbc);
         createCylinderButton(30, 60, p, gbc);
-        gbc.gridwidth = 1;
-        createSlider("ringSpan", ringSpan, p, gbc);
-        createSlider("counterSpan", counterSpan, p, gbc);
-        createSlider("barSpan", barSpan, p, gbc);
-        createSlider("horizontalSpan", horizontalSpan, p, gbc);
-        createSlider("verticalSpan", verticalSpan, p, gbc);
-        createSlider("springSpan", springSpan, p, gbc);
+        createRoleComponents(ring, p, gbc);
+        createRoleComponents(counter, p, gbc);
+        createRoleComponents(bar, p, gbc);
+        createRoleComponents(horizontal, p, gbc);
+        createRoleComponents(vertical, p, gbc);
         return p;
     }
 
     private void createCylinderButton(final int girth, final int length, JPanel p, GridBagConstraints gbc) {
+        gbc.gridy++;
         createButton(String.format("%d x %d", girth, length), p, gbc, new Runnable() {
             public void run() {
                 jobs.add(new KleinBuilder(girth, length));
@@ -230,12 +222,73 @@ public class TensegrityKlein extends Frame {
         p.add(button, gbc);
     }
 
-    private void createSlider(String title, final DoubleRangeModel model, JPanel p, GridBagConstraints gbc) {
-        createSlider(title, model.getModel(), p, gbc, new Runnable() {
+    private JPanel createPhysicsPanel() {
+        JPanel p = new JPanel(new GridBagLayout());
+        p.setBorder(BorderFactory.createTitledBorder("Physics"));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.gridy = 0;
+        timeModel.setMinimum(0);
+        timeModel.setValue(10);
+        timeModel.setMaximum(50);
+        physics.setIterations(timeModel.getValue());
+        p.add(new JLabel("Time"), gbc);
+        gbc.gridy++;
+        createSliderWithJob(timeModel, p, gbc, new Runnable() {
+            public void run() {
+                physics.setIterations(timeModel.getValue());
+            }
+        });
+        createPhysicsSlider("Gravity", gravityModel, p, gbc);
+        createPhysicsSlider("Drag", dragModel, p, gbc);
+        createPhysicsSlider("SubGravity", subGravityModel, p, gbc);
+        createPhysicsSlider("SubDrag", subDragModel, p, gbc);
+        return p;
+    }
+
+    private void createPhysicsSlider(String title, final DoubleRangeModel model, JPanel p, GridBagConstraints gbc) {
+        gbc.gridy++;
+        p.add(new JLabel(title), gbc);
+        createSliderWithJob(model.getModel(), p, gbc, new Runnable() {
             public void run() {
                 model.modelToValue();
             }
         });
+    }
+
+    private void createRoleComponents(final IntervalFamily intervalFamily, JPanel p, GridBagConstraints gbc) {
+        gbc.gridy++;
+        JCheckBox visible = new JCheckBox(intervalFamily.intervalRole.toString());
+        visible.setSelected(true);
+        visible.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent itemEvent) {
+                roleVisible[intervalFamily.intervalRole.ordinal()] = itemEvent.getStateChange() == ItemEvent.SELECTED;
+            }
+        });
+        p.add(visible, gbc);
+        createSliderWithJob(
+                intervalFamily.doubleRangeModel.getModel(), p, gbc,
+                new Runnable() {
+                    public void run() {
+                        intervalFamily.doubleRangeModel.modelToValue();
+                    }
+                }
+        );
+    }
+
+    private JSlider createSliderWithJob(final BoundedRangeModel model, JPanel p, GridBagConstraints gbc, final Runnable runnable) {
+        gbc.gridy++;
+        JSlider slider = new JSlider(model);
+        p.add(slider, gbc);
+        if (runnable != null) {
+            model.addChangeListener(new ChangeListener() {
+                public void stateChanged(ChangeEvent event) {
+                    jobs.add(runnable);
+                }
+            });
+        }
+        return slider;
     }
 
     private void createField(String title, final IntHolder intHolder, JPanel p, GridBagConstraints gbc) {
@@ -293,24 +346,6 @@ public class TensegrityKlein extends Frame {
         gbc.gridx = 0;
     }
 
-    private JSlider createSlider(String title, final BoundedRangeModel model, JPanel p, GridBagConstraints gbc, final Runnable runnable) {
-        gbc.gridy++;
-        gbc.gridx = 0;
-        JLabel titleLabel = new JLabel(title);
-        p.add(titleLabel, gbc);
-        gbc.gridx = 1;
-        JSlider slider = new JSlider(model);
-        p.add(slider, gbc);
-        if (runnable != null) {
-            model.addChangeListener(new ChangeListener() {
-                public void stateChanged(ChangeEvent event) {
-                    jobs.add(runnable);
-                }
-            });
-        }
-        return slider;
-    }
-
     private void wireUp() {
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent windowEvent) {
@@ -339,17 +374,17 @@ public class TensegrityKlein extends Frame {
     }
 
     private class KleinBuilder implements Runnable {
-        private int length, width;
+        private int length, girth;
 
-        private KleinBuilder(int length, int width) {
+        private KleinBuilder(int girth, int length) {
             this.length = length;
-            this.width = width;
+            this.girth = girth;
         }
 
         @Override
         public void run() {
             fabric = new Fabric(null);
-            GrowVertebra growVertebra = new GrowVertebra(width * 2);
+            GrowVertebra growVertebra = new GrowVertebra(girth * 2);
             growVertebra.setSpanMap(spanMap);
             fabric.addTransformation(growVertebra);
             fabric.addTransformation(new AboveFloor(0));
@@ -441,8 +476,10 @@ public class TensegrityKlein extends Frame {
                     case BAR:
                     case SPRING:
                     case RING_SPRING:
-                        interval.getUnit(true);
-                        ellipsoidPainter.visit(interval);
+                        if (roleVisible[interval.getRole().ordinal()]) {
+                            interval.getUnit(true);
+                            ellipsoidPainter.visit(interval);
+                        }
                         break;
                 }
             }
@@ -455,7 +492,9 @@ public class TensegrityKlein extends Frame {
                     case HORIZONTAL_CABLE:
                     case TEMPORARY:
                     case VERTICAL_CABLE:
-                        linePainter.visit(interval);
+                        if (roleVisible[interval.getRole().ordinal()]) {
+                            linePainter.visit(interval);
+                        }
                         break;
                 }
             }

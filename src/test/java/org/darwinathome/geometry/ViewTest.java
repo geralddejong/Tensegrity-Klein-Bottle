@@ -25,7 +25,7 @@ import eu.beautifulcode.eig.structure.Joint;
 import eu.beautifulcode.eig.structure.Physics;
 import eu.beautifulcode.eig.structure.SimpleFabricFactory;
 import eu.beautifulcode.eig.structure.Span;
-import eu.beautifulcode.eig.structure.Vertical;
+import eu.beautifulcode.eig.structure.VerticalPhysicsConstraints;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -43,7 +43,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ViewTest extends Frame {
     private static final float LIGHT_POSITION[] = {1f, 0.1f, 2f, 0.5f};
-    private Physics physics = new Physics(new Vertical());
+    private Physics physics = new Physics(new VerticalPhysicsConstraints());
     private GLCanvas canvas = new GLCanvas();
     private Floor floor = new Floor();
     private PointOfView pointOfView = new PointOfView(7);
