@@ -18,16 +18,16 @@ public class Interval {
 
     public enum Role {
         SPRING(true, SPRING_SMOOTH),
-        RING_SPRING(true, SPRING_SMOOTH),
+        SCAFFOLD(true, SPRING_SMOOTH),
         MUSCLE(true, SPRING_SMOOTH),
         BAR(true, BAR_SMOOTH),
         CABLE(false, CABLE_SMOOTH),
-        COUNTER_CABLE(false, CABLE_SMOOTH),
-        HORIZONTAL_CABLE(false, CABLE_SMOOTH),
-        RING_CABLE(false, CABLE_SMOOTH),
-        VERTICAL_CABLE(false, CABLE_SMOOTH),
-        TEMPORARY(false, CABLE_SMOOTH),
-        ELIMINATED(false, CABLE_SMOOTH);
+        COUNTER(false, CABLE_SMOOTH),
+        HORIZ(false, CABLE_SMOOTH),
+        RING(false, CABLE_SMOOTH),
+        VERT(false, CABLE_SMOOTH),
+        TEMP(false, CABLE_SMOOTH),
+        GONE(false, CABLE_SMOOTH);
 
         public final boolean canPush;
         public final double smoothVelocity;
@@ -112,14 +112,14 @@ public class Interval {
 
     public boolean isReal() {
         return
-                role != Role.ELIMINATED &&
-                role != Role.TEMPORARY &&
+                role != Role.GONE &&
+                role != Role.TEMP &&
                 alpha.who.side != Who.Side.ELIMINATED &&
                 omega.who.side != Who.Side.ELIMINATED;
     }
 
     public boolean replace(Joint from, Joint to) {
-        if (role != Role.ELIMINATED) {
+        if (role != Role.GONE) {
             if (from == alpha) {
                 if (to == omega) {
                     alpha = null;

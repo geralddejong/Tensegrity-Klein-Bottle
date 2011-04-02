@@ -39,9 +39,9 @@ public class JointMerge implements Fabric.Transformation {
         }
         middle = fabric.createJoint(fabric.who().createTemporary(), new Arrow(jointA.getLocation(),jointB.getLocation()));
         fabric.getMods().getJointMod().add(middle);
-        Interval cableA = fabric.createInterval(jointA, middle, Interval.Role.TEMPORARY);
+        Interval cableA = fabric.createInterval(jointA, middle, Interval.Role.TEMP);
         fabric.getMods().getIntervalMod().add(cableA);
-        Interval cableB = fabric.createInterval(jointB, middle, Interval.Role.TEMPORARY);
+        Interval cableB = fabric.createInterval(jointB, middle, Interval.Role.TEMP);
         fabric.getMods().getIntervalMod().add(cableB);
     }
 

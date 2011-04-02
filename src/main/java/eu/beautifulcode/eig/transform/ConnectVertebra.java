@@ -45,7 +45,7 @@ public class ConnectVertebra implements Fabric.Transformation {
 
     public void transform(Fabric fabric) {
         for (int walk = 0; walk < alphaRing.size(); walk++) {
-            Interval connect = fabric.createInterval(alphaRing.get(walk), omegaRing.get(walk), Interval.Role.TEMPORARY);
+            Interval connect = fabric.createInterval(alphaRing.get(walk), omegaRing.get(walk), Interval.Role.TEMP);
             fabric.getMods().getIntervalMod().add(connect);
         }
     }

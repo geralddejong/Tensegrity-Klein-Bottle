@@ -25,52 +25,23 @@ import java.util.TreeMap;
  */
 
 public class GrowVertebra implements Fabric.Transformation {
-    private int ticksToIdeal = 500;
+    private static final int TICKS_TO_IDEAL = 500;
     private Map<Interval.Role, Physics.Value> spanMap;
     private Vertebra vertebra;
-    private boolean rightHanded;
+    private boolean rightHanded, zigzag;
     private List<Joint> joints;
     private List<Joint> otherJoints;
     private int ringSize = 10;
     private boolean connecting;
 
-    /**
-     * Grow one from scratch
-     *
-     * @param ringSize how big
-     */
-
-    public GrowVertebra(int ringSize) {
-        this.ringSize = ringSize;
+    public GrowVertebra(int barCount) {
+        this.ringSize = barCount * 2;
     }
 
-    /**
-     * Grow a new vertebra on one end of an existing one
-     *
-     * @param vertebra the existing one
-     * @param alpha    true if the new one should attach to the alpha ring
-     */
-
-    public GrowVertebra(Vertebra vertebra, boolean alpha) {
-        this.rightHanded = vertebra.isRightHanded();
+    public GrowVertebra(Vertebra vertebra, boolean alpha, boolean zigzag) {
+        this.rightHanded = zigzag ^ vertebra.isRightHanded();
         this.joints = vertebra.getJoints(alpha);
-    }
-
-    /**
-     * Connect the omega ring of the alpha vertebra to the alpha ring of the omega vertebra
-     *
-     * @param alphaVertebra where to start
-     * @param omegaVertebra where to end
-     * @param ticksToIdeal  how long until the lengths are right
-     */
-
-    public GrowVertebra(Vertebra alphaVertebra, Vertebra omegaVertebra, int ticksToIdeal) {
-        this.joints = alphaVertebra.getJoints(false);
-        this.rightHanded = alphaVertebra.isRightHanded();
-        this.otherJoints = omegaVertebra.getJoints(true);
-//        this.otherJoints.add(this.otherJoints.remove(0));
-//        Collections.reverse(this.otherJoints);
-        this.ticksToIdeal = ticksToIdeal;
+        this.zigzag = zigzag;
     }
 
     public void setSpanMap(Map<Interval.Role, Physics.Value> spanMap) {
@@ -96,14 +67,14 @@ public class GrowVertebra implements Fabric.Transformation {
         List<Joint> omega = rightHanded ? otherJoints : joints;
         Arrow midBar = new Arrow();
         for (int walk = 0; walk < joints.size(); walk++) {
-            Interval counterCable = fabric.createInterval(alpha.get(walk), omega.get((walk + 1) % joints.size()), Interval.Role.COUNTER_CABLE);
+            Interval counterCable = fabric.createInterval(alpha.get(walk), omega.get((walk + 1) % joints.size()), Interval.Role.COUNTER);
             setIdeal(counterCable);
             fabric.getMods().getIntervalMod().add(counterCable);
             if (walk % 2 == 1) {
                 Interval bar = fabric.createInterval(alpha.get(walk), omega.get((walk + 2) % joints.size()), Interval.Role.BAR);
                 setIdeal(bar);
                 fabric.getMods().getIntervalMod().add(bar);
-                Interval vertical = fabric.createInterval(alpha.get(walk), omega.get(walk), Interval.Role.VERTICAL_CABLE);
+                Interval vertical = fabric.createInterval(alpha.get(walk), omega.get(walk), Interval.Role.VERT);
                 setIdeal(vertical);
                 fabric.getMods().getIntervalMod().add(vertical);
                 // reposition
@@ -116,21 +87,21 @@ public class GrowVertebra implements Fabric.Transformation {
             boolean even = walk % 2 == 0;
             if (!connecting) {
                 if (even) {
-                    Interval spring = fabric.createInterval(otherJoints.get(walk), otherJoints.get((walk + 2) % joints.size()), Interval.Role.RING_SPRING);
+                    Interval spring = fabric.createInterval(otherJoints.get(walk), otherJoints.get((walk + 2) % joints.size()), Interval.Role.SCAFFOLD);
                     setIdeal(spring);
                     fabric.getMods().getIntervalMod().add(spring);
                 }
                 else {
-                    Interval safety = fabric.createInterval(otherJoints.get(walk), otherJoints.get((walk + 2) % joints.size()), Interval.Role.HORIZONTAL_CABLE);
+                    Interval safety = fabric.createInterval(otherJoints.get(walk), otherJoints.get((walk + 2) % joints.size()), Interval.Role.HORIZ);
                     setIdeal(safety);
                     fabric.getMods().getIntervalMod().add(safety);
                 }
             }
-            Interval ringCable = fabric.createInterval(otherJoints.get(walk), otherJoints.get((walk + 1) % joints.size()), Interval.Role.RING_CABLE);
+            Interval ringCable = fabric.createInterval(otherJoints.get(walk), otherJoints.get((walk + 1) % joints.size()), Interval.Role.RING);
             setIdeal(ringCable);
             fabric.getMods().getIntervalMod().add(ringCable);
         }
-        vertebra = new Vertebra(!rightHanded);
+        vertebra = new Vertebra(rightHanded);
         vertebra.getJoints().addAll(joints);
         vertebra.getJoints().addAll(otherJoints);
         fabric.getMods().getVertebraMod().add(vertebra);
@@ -155,7 +126,7 @@ public class GrowVertebra implements Fabric.Transformation {
         for (int walk = 0; walk < jointList.size(); walk++) {
             Interval spring = fabric.getInterval(jointList.get(walk), jointList.get((walk + 2) % jointList.size()));
             if (spring != null) {
-                if (spring.getRole() != Interval.Role.RING_SPRING) {
+                if (spring.getRole() != Interval.Role.SCAFFOLD) {
                     continue;
                 }
                 fabric.getMods().getIntervalMod().remove(spring);
@@ -165,7 +136,7 @@ public class GrowVertebra implements Fabric.Transformation {
 
     private List<Joint> createRing(Fabric fabric) {
         joints = new ArrayList<Joint>();
-        double radius = ringSize / 6.0;
+        double radius = ringSize / 10.0;
         for (int walk = 0; walk < ringSize; walk++) {
             double angle = walk * 2 * Math.PI / ringSize;
             Joint joint = fabric.createJoint(fabric.who().createMiddle(), new Arrow(radius * Math.cos(angle), radius * Math.sin(angle), 0));
@@ -178,16 +149,16 @@ public class GrowVertebra implements Fabric.Transformation {
             if (!even) {
                 joints.get(walk).getLocation().add(ring.getNormal(), 0.03);
             }
-            Interval ringCable = fabric.createInterval(joints.get(walk), joints.get((walk + 1) % ringSize), Interval.Role.RING_CABLE);
+            Interval ringCable = fabric.createInterval(joints.get(walk), joints.get((walk + 1) % ringSize), Interval.Role.RING);
             setIdeal(ringCable);
             fabric.getMods().getIntervalMod().add(ringCable);
             if (even) {
-                Interval spring = fabric.createInterval(joints.get(walk), joints.get((walk + 2) % ringSize), Interval.Role.RING_SPRING);
+                Interval spring = fabric.createInterval(joints.get(walk), joints.get((walk + 2) % ringSize), Interval.Role.SCAFFOLD);
                 setIdeal(spring);
                 fabric.getMods().getIntervalMod().add(spring);
             }
             else {
-                Interval safety = fabric.createInterval(joints.get(walk), joints.get((walk + 2) % ringSize), Interval.Role.HORIZONTAL_CABLE);
+                Interval safety = fabric.createInterval(joints.get(walk), joints.get((walk + 2) % ringSize), Interval.Role.HORIZ);
                 setIdeal(safety);
                 fabric.getMods().getIntervalMod().add(safety);
             }
@@ -196,7 +167,7 @@ public class GrowVertebra implements Fabric.Transformation {
     }
 
     private void setIdeal(Interval interval) {
-        interval.getSpan().setIdeal(value(interval.getRole()).get(), ticksToIdeal);
+        interval.getSpan().setIdeal(value(interval.getRole()).get(), TICKS_TO_IDEAL);
     }
 
     private Physics.Value value(Interval.Role role) {
@@ -206,19 +177,19 @@ public class GrowVertebra implements Fabric.Transformation {
         Physics.Value value = spanMap.get(role);
         if (value == null) {
             switch (role) { // defaults
-                case RING_CABLE:
+                case RING:
                     value = new Val(role, 0.6);
                     break;
-                case RING_SPRING:
+                case SCAFFOLD:
                     value = new Val(role, 1.3);
                     break;
-                case COUNTER_CABLE:
+                case COUNTER:
                     value = new Val(role, 0.4);
                     break;
-                case HORIZONTAL_CABLE:
+                case HORIZ:
                     value = new Val(role, 1.3);
                     break;
-                case VERTICAL_CABLE:
+                case VERT:
                     value = new Val(role, 1.7);
                     break;
                 case BAR:

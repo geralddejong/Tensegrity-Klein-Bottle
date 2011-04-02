@@ -21,6 +21,7 @@ import eu.beautifulcode.eig.structure.VerticalPhysicsConstraints;
 import eu.beautifulcode.eig.transform.AboveFloor;
 import eu.beautifulcode.eig.transform.ConnectVertebra;
 import eu.beautifulcode.eig.transform.GrowVertebra;
+import org.apache.log4j.Logger;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GLCanvas;
@@ -42,7 +43,6 @@ import javax.swing.event.DocumentListener;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -62,6 +62,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.TreeMap;
@@ -73,6 +74,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class TensegrityKlein extends Frame {
     private static final float LIGHT_POSITION[] = {1f, 0.1f, 2f, 0.5f};
+    private Logger log = Logger.getLogger(getClass());
     private VerticalPhysicsConstraints verticalPhysicsConstraints = new VerticalPhysicsConstraints();
     private Physics physics = new Physics(verticalPhysicsConstraints);
     private GLCanvas canvas = new GLCanvas();
@@ -87,11 +89,13 @@ public class TensegrityKlein extends Frame {
     private DoubleRangeModel dragModel = new DoubleRangeModel(verticalPhysicsConstraints.getAirDrag(), 10);
     private DoubleRangeModel subGravityModel = new DoubleRangeModel(verticalPhysicsConstraints.getLandGravity(), 100);
     private DoubleRangeModel subDragModel = new DoubleRangeModel(verticalPhysicsConstraints.getLandDrag(), 10);
-    private IntervalFamily ring = new IntervalFamily(Interval.Role.RING_CABLE, 0.6, 2);
-    private IntervalFamily counter = new IntervalFamily(Interval.Role.COUNTER_CABLE, 0.4, 2);
+    private IntervalFamily ring = new IntervalFamily(Interval.Role.RING, 0.6, 2);
+    private IntervalFamily counter = new IntervalFamily(Interval.Role.COUNTER, 0.4, 2);
     private IntervalFamily bar = new IntervalFamily(Interval.Role.BAR, 1.7, 2);
-    private IntervalFamily horizontal = new IntervalFamily(Interval.Role.HORIZONTAL_CABLE, 1.3, 2);
-    private IntervalFamily vertical = new IntervalFamily(Interval.Role.VERTICAL_CABLE, 1.65, 2);
+    private IntervalFamily horizontal = new IntervalFamily(Interval.Role.HORIZ, 1.3, 2);
+    private IntervalFamily vertical = new IntervalFamily(Interval.Role.VERT, 1.65, 2);
+    private JCheckBox zigzagBox = new JCheckBox("Zigzag", true);
+
     private Fabric fabric;
     private boolean running = true;
     private boolean physicsActive = true;
@@ -116,7 +120,7 @@ public class TensegrityKlein extends Frame {
     public TensegrityKlein() {
         super("Tensegrity Demo");
 //        floor.setMiddle(pointOfView.getFocus());
-        spanMap.put(Interval.Role.RING_SPRING, new IdealLength(Interval.Role.RING_SPRING, 1.3));
+        spanMap.put(Interval.Role.SCAFFOLD, new IdealLength(Interval.Role.SCAFFOLD, 1.3));
         canvas.setFocusable(true);
         Arrays.fill(roleVisible, true);
         GLViewPlatform viewPlatform = new GLViewPlatform(new Renderer(), pointOfView, 1, 180);
@@ -169,9 +173,29 @@ public class TensegrityKlein extends Frame {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.gridy = 0;
         gbc.gridx = 0;
+        p.add(zigzagBox, gbc);
+        JButton kleinify = new JButton("Kleinify");
+        kleinify.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                jobs.add(new Runnable() {
+                    @Override
+                    public void run() {
+                        fabric.addTransformation(new RingRemover());
+                        Vertebra vertebraA = fabric.getVertebras().get(fabric.getVertebras().size() - 1);
+                        Vertebra vertebraB = fabric.getVertebras().get(0);
+                        fabric.addTransformation(new ConnectVertebra(vertebraA, vertebraB, true));
+                    }
+                });
+            }
+        });
+        gbc.gridy++;
+        p.add(kleinify, gbc);
+        createCylinderButton(3, 1, p, gbc);
+        createCylinderButton(3, 2, p, gbc);
         createCylinderButton(10, 16, p, gbc);
         createCylinderButton(10, 60, p, gbc);
-        createCylinderButton(16, 24, p, gbc);
+//        createCylinderButton(16, 24, p, gbc);
         createCylinderButton(24, 24, p, gbc);
         createCylinderButton(30, 60, p, gbc);
         createRoleComponents(ring, p, gbc);
@@ -186,7 +210,7 @@ public class TensegrityKlein extends Frame {
         gbc.gridy++;
         createButton(String.format("%d x %d", girth, length), p, gbc, new Runnable() {
             public void run() {
-                jobs.add(new KleinBuilder(girth, length));
+                jobs.add(new KleinBuilder(girth, length, zigzagBox.isSelected()));
             }
         });
     }
@@ -375,44 +399,54 @@ public class TensegrityKlein extends Frame {
 
     private class KleinBuilder implements Runnable {
         private int length, girth;
+        private boolean zigzag;
 
-        private KleinBuilder(int girth, int length) {
+        private KleinBuilder(int girth, int length, boolean zigzag) {
             this.length = length;
             this.girth = girth;
+            this.zigzag = zigzag;
         }
 
         @Override
         public void run() {
             fabric = new Fabric(null);
-            GrowVertebra growVertebra = new GrowVertebra(girth * 2);
+            GrowVertebra growVertebra = new GrowVertebra(girth);
             growVertebra.setSpanMap(spanMap);
             fabric.addTransformation(growVertebra);
             fabric.addTransformation(new AboveFloor(0));
             fabric.executeTransformations(physics);
-            new TubeGrower(length).start();
+            if (length > 1) {
+                new TubeGrower(length - 1, zigzag).start();
+            }
         }
     }
 
     private class TubeGrower implements Runnable, ActionListener {
         private int length;
+        private boolean kleinify;
+        private boolean zigzag;
         private Timer timer = new Timer(100, this);
 
-        private TubeGrower(int length) {
+        private TubeGrower(int length, boolean zigzag) {
             this.length = length;
+            this.kleinify = false;
+            this.zigzag = zigzag;
         }
 
         public void run() {
             if (!fabric.isAnySpanActive()) {
                 Vertebra vertebra = fabric.getVertebras().get(fabric.getVertebras().size() - 1);
-                GrowVertebra growVertebra = new GrowVertebra(vertebra, false); // false => omega
+                GrowVertebra growVertebra = new GrowVertebra(vertebra, false, zigzag); // false => omega
                 growVertebra.setSpanMap(spanMap);
                 fabric.addTransformation(growVertebra);
                 length--;
                 if (length <= 0) {
-                    fabric.addTransformation(new RingRemover());
-                    Vertebra vertebraA = fabric.getVertebras().get(fabric.getVertebras().size() - 1);
-                    Vertebra vertebraB = fabric.getVertebras().get(0);
-                    fabric.addTransformation(new ConnectVertebra(vertebraA, vertebraB, true));
+                    if (kleinify) {
+                        fabric.addTransformation(new RingRemover());
+                        Vertebra vertebraA = fabric.getVertebras().get(fabric.getVertebras().size() - 1);
+                        Vertebra vertebraB = fabric.getVertebras().get(0);
+                        fabric.addTransformation(new ConnectVertebra(vertebraA, vertebraB, true));
+                    }
                     timer.stop();
                 }
             }
@@ -475,7 +509,7 @@ public class TensegrityKlein extends Frame {
                 switch (interval.getRole()) {
                     case BAR:
                     case SPRING:
-                    case RING_SPRING:
+                    case SCAFFOLD:
                         if (roleVisible[interval.getRole().ordinal()]) {
                             interval.getUnit(true);
                             ellipsoidPainter.visit(interval);
@@ -485,23 +519,16 @@ public class TensegrityKlein extends Frame {
             }
             linePainter.preVisit(gl);
             for (Interval interval : fab.getIntervals()) {
-                switch (interval.getRole()) {
-                    case CABLE:
-                    case COUNTER_CABLE:
-                    case RING_CABLE:
-                    case HORIZONTAL_CABLE:
-                    case TEMPORARY:
-                    case VERTICAL_CABLE:
-                        if (roleVisible[interval.getRole().ordinal()]) {
-                            linePainter.visit(interval);
-                        }
-                        break;
+                if (roleVisible[interval.getRole().ordinal()]) {
+                    linePainter.visit(interval);
                 }
             }
             linePainter.postVisit(gl);
             intervalLabelPainter.preVisit(gl);
             for (Interval interval : fab.getIntervals()) {
-                intervalLabelPainter.visit(interval);
+                if (roleVisible[interval.getRole().ordinal()]) {
+                    intervalLabelPainter.visit(interval);
+                }
             }
         }
     }
@@ -526,6 +553,15 @@ public class TensegrityKlein extends Frame {
                 case KeyEvent.VK_S:
                     step++;
                     break;
+                case KeyEvent.VK_C:
+                    log.info(String.format("Joints %d", fabric.getJoints().size()));
+                    for (Interval.Role role : Interval.Role.values()) {
+                        List<Interval> intervals = fabric.getIntervals(role);
+                        if (!intervals.isEmpty()) {
+                            log.info(String.format("%s %d", role, intervals.size()));
+                        }
+                    }
+                    break;
             }
         }
     }
@@ -533,7 +569,7 @@ public class TensegrityKlein extends Frame {
     private class RingRemover implements Fabric.Transformation {
         public void transform(Fabric fabric) {
             for (Interval interval : fabric.getIntervals()) {
-                if (interval.getRole() == Interval.Role.RING_SPRING) {
+                if (interval.getRole() == Interval.Role.SCAFFOLD) {
                     fabric.getMods().getIntervalMod().remove(interval);
                 }
             }

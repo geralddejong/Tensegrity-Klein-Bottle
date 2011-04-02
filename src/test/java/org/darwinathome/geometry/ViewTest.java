@@ -118,7 +118,7 @@ public class ViewTest extends Frame {
             if (fabric != null) {
                 ellipsoidPainter.preVisit(gl);
                 for (Interval interval : fabric.getIntervals()) {
-                    if (interval.getRole() != Interval.Role.ELIMINATED) {
+                    if (interval.getRole() != Interval.Role.GONE) {
                         ellipsoidPainter.visit(interval);
                     }
                 }

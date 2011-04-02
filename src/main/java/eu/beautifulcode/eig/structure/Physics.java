@@ -69,10 +69,10 @@ public class Physics implements Fabric.PhysicsTransformation {
             if (interval.span.experienceTime(fabric.age)) {
                 anySpanActive = true;
             }
-            if (interval.role != Interval.Role.ELIMINATED) {
+            if (interval.role != Interval.Role.GONE) {
                 elastic(interval);
             }
-            if (interval.role == Interval.Role.TEMPORARY) {
+            if (interval.role == Interval.Role.TEMP) {
                 if (!interval.span.isActive()) {
                     eliminate(interval, fabric);
                 }
@@ -82,7 +82,7 @@ public class Physics implements Fabric.PhysicsTransformation {
             fabric.spansWereActive();
         }
         for (Interval interval : fabric.intervals) {
-            if (interval.role == Interval.Role.ELIMINATED) continue;
+            if (interval.role == Interval.Role.GONE) continue;
             smoothVelocity(interval, interval.role.smoothVelocity);
         }
         for (Joint joint : fabric.joints) {
@@ -101,7 +101,7 @@ public class Physics implements Fabric.PhysicsTransformation {
             joint.absorbVelocity.zero();
         }
         for (Interval interval : fabric.intervals) {
-            if (interval.role == Interval.Role.ELIMINATED) continue;
+            if (interval.role == Interval.Role.GONE) continue;
             double alphaAltitude = interval.alpha.getAltitude();
             double omegaAltitude = interval.omega.getAltitude();
             boolean straddle = alphaAltitude > 0 ^ omegaAltitude > 0;
@@ -311,7 +311,7 @@ public class Physics implements Fabric.PhysicsTransformation {
         List<Interval> intervals = fabric.getIntervals(joint);
         List<Joint> others = new ArrayList<Joint>();
         for (Interval interval : intervals) {
-            if (interval.role == Interval.Role.TEMPORARY || interval.role == Interval.Role.ELIMINATED) continue;
+            if (interval.role == Interval.Role.TEMP || interval.role == Interval.Role.GONE) continue;
             Joint other = interval.getOther(joint);
             if (other.who.side != Who.Side.ELIMINATED) {
                 if (others.contains(other)) {

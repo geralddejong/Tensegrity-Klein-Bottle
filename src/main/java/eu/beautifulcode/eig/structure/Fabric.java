@@ -124,6 +124,16 @@ public class Fabric {
         return intervals;
     }
 
+    public List<Interval> getIntervals(Interval.Role role) {
+        List<Interval> roleIntervals = new ArrayList<Interval>();
+        for (Interval interval : intervals) {
+            if (interval.role == role) {
+                roleIntervals.add(interval);
+            }
+        }
+        return roleIntervals;
+    }
+
     public List<Interval> getIntervals(Joint joint) {
         List<Interval> found = new ArrayList<Interval>();
         for (Interval interval : intervals) {
@@ -354,7 +364,7 @@ public class Fabric {
 
     public Interval createInterval(Joint alpha, Joint omega, Interval.Role role) {
         Interval interval = new Interval(alpha, omega, role);
-        if (interval.role == Interval.Role.TEMPORARY) {
+        if (interval.role == Interval.Role.TEMP) {
             interval.span.setIdeal(0, 30 + (int)(100 * interval.span.getCurrentIdeal()));
         }
         Thing.Factory thingFactory = getThingFactory();
@@ -421,7 +431,7 @@ public class Fabric {
         private ModCollection<Interval> intervalMods = new ModCollection<Interval>() {
             @Override
             public void remove(Interval interval) {
-                interval.role = Interval.Role.ELIMINATED;
+                interval.role = Interval.Role.GONE;
 //                if (interval.alpha.who.side == Who.Side.TEMPORARY) {
 //                    interval.alpha.who.side = Who.Side.ELIMINATED;
 //                }
@@ -474,7 +484,7 @@ public class Fabric {
             transformation.transform(Fabric.this);
             for (Joint removedJoint : jointMods.remove) {
                 for (Interval interval : intervals) {
-                    if (interval.getRole() != Interval.Role.ELIMINATED) {
+                    if (interval.getRole() != Interval.Role.GONE) {
                         if (interval.contains(removedJoint)) {
                             intervalMods.remove(interval);
                         }

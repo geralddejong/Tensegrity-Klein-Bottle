@@ -62,7 +62,7 @@ public class Positioner {
     }
 
     private class KeyHandler extends AbstractKeyHandler {
-        private static final double ROTATE_ANGLE = 0.04;
+        private static final double ROTATE_ANGLE = 0.01;
         private boolean holdLeft, holdRight;
 
         private KeyHandler() {

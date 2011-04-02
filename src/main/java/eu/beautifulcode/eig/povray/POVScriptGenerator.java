@@ -291,7 +291,7 @@ public class POVScriptGenerator {
         for (Interval interval : fabric.getIntervals()) {
             switch (interval.getRole()) {
                 case BAR:
-                case RING_SPRING:
+                case SCAFFOLD:
                 case SPRING:
                 case MUSCLE:
                     interval.getLocation(location);
@@ -311,9 +311,9 @@ public class POVScriptGenerator {
                     out.println();
                     break;
                 case CABLE:
-                case HORIZONTAL_CABLE:
-                case RING_CABLE:
-                case COUNTER_CABLE:
+                case HORIZ:
+                case RING:
+                case COUNTER:
                     out.println("cylinder {");
                     out.println("  <" + format(interval.get(false).getLocation()) + ">,");
                     out.println("  <" + format(interval.get(true).getLocation()) + ">,");
@@ -322,7 +322,7 @@ public class POVScriptGenerator {
                     out.println("}");
                     out.println();
                     break;
-                case TEMPORARY:
+                case TEMP:
                     break;
             }
         }
