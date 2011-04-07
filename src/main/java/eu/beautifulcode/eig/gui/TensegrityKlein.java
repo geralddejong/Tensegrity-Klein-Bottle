@@ -33,7 +33,9 @@ import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
+import javax.swing.JSpinner;
 import javax.swing.JTextField;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.event.ChangeEvent;
@@ -89,12 +91,14 @@ public class TensegrityKlein extends Frame {
     private DoubleRangeModel dragModel = new DoubleRangeModel(verticalPhysicsConstraints.getAirDrag(), 10);
     private DoubleRangeModel subGravityModel = new DoubleRangeModel(verticalPhysicsConstraints.getLandGravity(), 100);
     private DoubleRangeModel subDragModel = new DoubleRangeModel(verticalPhysicsConstraints.getLandDrag(), 10);
+    private SpinnerNumberModel girthModel = new SpinnerNumberModel(3, 3, 60, 1);
+    private SpinnerNumberModel lengthModel = new SpinnerNumberModel(5, 1, 60, 1);
     private IntervalFamily ringEven = new IntervalFamily(Interval.Role.RINGBAR, 0.6, 2);
     private IntervalFamily ringOdd = new IntervalFamily(Interval.Role.RING, 0.6, 2);
     private IntervalFamily counter = new IntervalFamily(Interval.Role.ACROSS, 0.4, 2);
     private IntervalFamily bar = new IntervalFamily(Interval.Role.BAR, 1.7, 2);
     private IntervalFamily horizontal = new IntervalFamily(Interval.Role.HORIZ, 1.3, 2);
-    private IntervalFamily vertical = new IntervalFamily(Interval.Role.VERT, 1.65, 2);
+    private IntervalFamily vertical = new IntervalFamily(Interval.Role.VERT, 1, 2);
     private JCheckBox zigzagBox = new JCheckBox("Zigzag", true);
 
     private Fabric fabric;
@@ -174,31 +178,30 @@ public class TensegrityKlein extends Frame {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.gridy = 0;
         gbc.gridx = 0;
+        p.add(new JLabel("Girth:"), gbc);
+        gbc.gridy++;
+        p.add(new JSpinner(girthModel), gbc);
+        gbc.gridy++;
+        p.add(new JLabel("Length:"), gbc);
+        gbc.gridy++;
+        p.add(new JSpinner(lengthModel), gbc);
+        gbc.gridy++;
         p.add(zigzagBox, gbc);
-        JButton kleinify = new JButton("Kleinify");
-        kleinify.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                jobs.add(new Runnable() {
-                    @Override
-                    public void run() {
-                        fabric.addTransformation(new RingRemover());
-                        Vertebra vertebraA = fabric.getVertebras().get(fabric.getVertebras().size() - 1);
-                        Vertebra vertebraB = fabric.getVertebras().get(0);
-                        fabric.addTransformation(new ConnectVertebra(vertebraA, vertebraB, true));
-                    }
-                });
+        createButton(String.format("Build Tube"), p, gbc, new Runnable() {
+            public void run() {
+                jobs.add(new KleinBuilder((Integer) girthModel.getValue(), (Integer) lengthModel.getValue(), zigzagBox.isSelected()));
             }
         });
-        gbc.gridy++;
-        p.add(kleinify, gbc);
-        createCylinderButton(3, 1, p, gbc);
-        createCylinderButton(3, 2, p, gbc);
-        createCylinderButton(10, 16, p, gbc);
-        createCylinderButton(10, 60, p, gbc);
-//        createCylinderButton(16, 24, p, gbc);
-        createCylinderButton(24, 24, p, gbc);
-        createCylinderButton(30, 60, p, gbc);
+        createButton("Kleinify", p, gbc, new Runnable() {
+            @Override
+            public void run() {
+                fabric.addTransformation(new RingRemover());
+                Vertebra vertebraA = fabric.getVertebras().get(fabric.getVertebras().size() - 1);
+                Vertebra vertebraB = fabric.getVertebras().get(0);
+                fabric.addTransformation(new ConnectVertebra(vertebraA, vertebraB, true));
+            }
+        }
+        );
         createRoleComponents(ringEven, p, gbc);
         createRoleComponents(ringOdd, p, gbc);
         createRoleComponents(counter, p, gbc);
@@ -206,15 +209,6 @@ public class TensegrityKlein extends Frame {
         createRoleComponents(horizontal, p, gbc);
         createRoleComponents(vertical, p, gbc);
         return p;
-    }
-
-    private void createCylinderButton(final int girth, final int length, JPanel p, GridBagConstraints gbc) {
-        gbc.gridy++;
-        createButton(String.format("%d x %d", girth, length), p, gbc, new Runnable() {
-            public void run() {
-                jobs.add(new KleinBuilder(girth, length, zigzagBox.isSelected()));
-            }
-        });
     }
 
     private JPanel createMoviePanel() {

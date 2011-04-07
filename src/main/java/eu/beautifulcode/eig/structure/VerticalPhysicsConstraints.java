@@ -14,7 +14,7 @@ public class VerticalPhysicsConstraints implements Physics.Constraints {
     private PhysicsValue airDrag = new PhysicsValue("airDrag", 0.002);
     private PhysicsValue airGravity = new PhysicsValue("airGravity", 0.000001);
     private PhysicsValue landDrag = new PhysicsValue("landDrag", 20);
-    private PhysicsValue landGravity = new PhysicsValue("landGravity", 60);
+    private PhysicsValue landGravity = new PhysicsValue("landGravity", 100);
     private PhysicsValue elasticFactor = new PhysicsValue("elasticFactor", 0.4);
 
     public VerticalPhysicsConstraints() {
