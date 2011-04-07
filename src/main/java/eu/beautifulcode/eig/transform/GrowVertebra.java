@@ -67,7 +67,7 @@ public class GrowVertebra implements Fabric.Transformation {
         List<Joint> omega = rightHanded ? otherJoints : joints;
         Arrow midBar = new Arrow();
         for (int walk = 0; walk < joints.size(); walk++) {
-            Interval counterCable = fabric.createInterval(alpha.get(walk), omega.get((walk + 1) % joints.size()), Interval.Role.ACROSS);
+            Interval counterCable = fabric.createInterval(alpha.get(walk), omega.get((walk + 1) % joints.size()), rightHanded? Interval.Role.ZIG : Interval.Role.ZAG);
             setIdeal(counterCable);
             fabric.getMods().getIntervalMod().add(counterCable);
             if (walk % 2 == 1) {
@@ -186,7 +186,10 @@ public class GrowVertebra implements Fabric.Transformation {
                 case SCAFFOLD:
                     value = new Val(role, 1.3);
                     break;
-                case ACROSS:
+                case ZIG:
+                    value = new Val(role, 0.4);
+                    break;
+                case ZAG:
                     value = new Val(role, 0.4);
                     break;
                 case HORIZ:
