@@ -67,7 +67,7 @@ public class GrowVertebra implements Fabric.Transformation {
         List<Joint> omega = rightHanded ? otherJoints : joints;
         Arrow midBar = new Arrow();
         for (int walk = 0; walk < joints.size(); walk++) {
-            Interval counterCable = fabric.createInterval(alpha.get(walk), omega.get((walk + 1) % joints.size()), Interval.Role.COUNTER);
+            Interval counterCable = fabric.createInterval(alpha.get(walk), omega.get((walk + 1) % joints.size()), Interval.Role.ACROSS);
             setIdeal(counterCable);
             fabric.getMods().getIntervalMod().add(counterCable);
             if (walk % 2 == 1) {
@@ -97,7 +97,7 @@ public class GrowVertebra implements Fabric.Transformation {
                     fabric.getMods().getIntervalMod().add(safety);
                 }
             }
-            Interval ringCable = fabric.createInterval(otherJoints.get(walk), otherJoints.get((walk + 1) % joints.size()), Interval.Role.RING);
+            Interval ringCable = fabric.createInterval(otherJoints.get(walk), otherJoints.get((walk + 1) % joints.size()), even ? Interval.Role.RING : Interval.Role.RINGBAR);
             setIdeal(ringCable);
             fabric.getMods().getIntervalMod().add(ringCable);
         }
@@ -149,7 +149,7 @@ public class GrowVertebra implements Fabric.Transformation {
             if (!even) {
                 joints.get(walk).getLocation().add(ring.getNormal(), 0.03);
             }
-            Interval ringCable = fabric.createInterval(joints.get(walk), joints.get((walk + 1) % ringSize), Interval.Role.RING);
+            Interval ringCable = fabric.createInterval(joints.get(walk), joints.get((walk + 1) % ringSize), even ? Interval.Role.RINGBAR : Interval.Role.RING);
             setIdeal(ringCable);
             fabric.getMods().getIntervalMod().add(ringCable);
             if (even) {
@@ -177,13 +177,16 @@ public class GrowVertebra implements Fabric.Transformation {
         Physics.Value value = spanMap.get(role);
         if (value == null) {
             switch (role) { // defaults
+                case RINGBAR:
+                    value = new Val(role, 0.6);
+                    break;
                 case RING:
                     value = new Val(role, 0.6);
                     break;
                 case SCAFFOLD:
                     value = new Val(role, 1.3);
                     break;
-                case COUNTER:
+                case ACROSS:
                     value = new Val(role, 0.4);
                     break;
                 case HORIZ:

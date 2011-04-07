@@ -89,8 +89,9 @@ public class TensegrityKlein extends Frame {
     private DoubleRangeModel dragModel = new DoubleRangeModel(verticalPhysicsConstraints.getAirDrag(), 10);
     private DoubleRangeModel subGravityModel = new DoubleRangeModel(verticalPhysicsConstraints.getLandGravity(), 100);
     private DoubleRangeModel subDragModel = new DoubleRangeModel(verticalPhysicsConstraints.getLandDrag(), 10);
-    private IntervalFamily ring = new IntervalFamily(Interval.Role.RING, 0.6, 2);
-    private IntervalFamily counter = new IntervalFamily(Interval.Role.COUNTER, 0.4, 2);
+    private IntervalFamily ringEven = new IntervalFamily(Interval.Role.RINGBAR, 0.6, 2);
+    private IntervalFamily ringOdd = new IntervalFamily(Interval.Role.RING, 0.6, 2);
+    private IntervalFamily counter = new IntervalFamily(Interval.Role.ACROSS, 0.4, 2);
     private IntervalFamily bar = new IntervalFamily(Interval.Role.BAR, 1.7, 2);
     private IntervalFamily horizontal = new IntervalFamily(Interval.Role.HORIZ, 1.3, 2);
     private IntervalFamily vertical = new IntervalFamily(Interval.Role.VERT, 1.65, 2);
@@ -198,7 +199,8 @@ public class TensegrityKlein extends Frame {
 //        createCylinderButton(16, 24, p, gbc);
         createCylinderButton(24, 24, p, gbc);
         createCylinderButton(30, 60, p, gbc);
-        createRoleComponents(ring, p, gbc);
+        createRoleComponents(ringEven, p, gbc);
+        createRoleComponents(ringOdd, p, gbc);
         createRoleComponents(counter, p, gbc);
         createRoleComponents(bar, p, gbc);
         createRoleComponents(horizontal, p, gbc);
