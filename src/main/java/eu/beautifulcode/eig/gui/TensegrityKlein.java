@@ -93,13 +93,10 @@ public class TensegrityKlein extends Frame {
     private DoubleRangeModel subDragModel = new DoubleRangeModel(verticalPhysicsConstraints.getLandDrag(), 10);
     private SpinnerNumberModel girthModel = new SpinnerNumberModel(12, 3, 60, 1);
     private SpinnerNumberModel lengthModel = new SpinnerNumberModel(12, 1, 60, 1);
-    private IntervalFamily ringbar = new IntervalFamily(Interval.Role.RINGBAR, 0.6, 2);
     private IntervalFamily ring = new IntervalFamily(Interval.Role.RING, 0.6, 2);
-    private IntervalFamily zig = new IntervalFamily(Interval.Role.ZIG, 0.4, 2);
-    private IntervalFamily zag = new IntervalFamily(Interval.Role.ZAG, 0.4, 2);
+    private IntervalFamily far = new IntervalFamily(Interval.Role.FAR, 0.6, 2);
     private IntervalFamily bar = new IntervalFamily(Interval.Role.BAR, 1.7, 2);
-    private IntervalFamily horiz = new IntervalFamily(Interval.Role.HORIZ, 1.3, 2);
-    private IntervalFamily vert = new IntervalFamily(Interval.Role.VERT, 1, 2);
+    private IntervalFamily cross = new IntervalFamily(Interval.Role.CROSS, 1, 2);
     private JCheckBox zigzagBox = new JCheckBox("Zigzag", true);
 
     private Fabric fabric;
@@ -203,13 +200,10 @@ public class TensegrityKlein extends Frame {
             }
         }
         );
-        createRoleComponents(ringbar, p, gbc);
         createRoleComponents(ring, p, gbc);
-        createRoleComponents(zig, p, gbc);
-        createRoleComponents(zag, p, gbc);
+        createRoleComponents(far, p, gbc);
         createRoleComponents(bar, p, gbc);
-        createRoleComponents(horiz, p, gbc);
-        createRoleComponents(vert, p, gbc);
+        createRoleComponents(cross, p, gbc);
         return p;
     }
 

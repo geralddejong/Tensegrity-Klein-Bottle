@@ -311,11 +311,8 @@ public class POVScriptGenerator {
                     out.println();
                     break;
                 case CABLE:
-                case HORIZ:
-                case RINGBAR:
                 case RING:
-                case ZIG:
-                case ZAG:
+                case FAR:
                     out.println("cylinder {");
                     out.println("  <" + format(interval.get(false).getLocation()) + ">,");
                     out.println("  <" + format(interval.get(true).getLocation()) + ">,");

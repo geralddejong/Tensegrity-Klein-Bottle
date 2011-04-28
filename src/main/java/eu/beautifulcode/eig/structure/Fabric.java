@@ -387,7 +387,7 @@ public class Fabric {
 
         boolean isRemoved(T t);
 
-        void add(T t);
+        T add(T t);
 
         void remove(T t);
 
@@ -558,11 +558,12 @@ public class Fabric {
             return remove.contains(t);
         }
 
-        public void add(T t) {
+        public T add(T t) {
             if (add.contains(t) || remove.contains(t)) {
                 throw new RuntimeException();
             }
             add.add(t);
+            return t;
         }
 
         public void remove(T t) {

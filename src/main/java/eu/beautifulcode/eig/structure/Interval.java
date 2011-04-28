@@ -22,12 +22,9 @@ public class Interval {
         MUSCLE(true, SPRING_SMOOTH),
         BAR(true, BAR_SMOOTH),
         CABLE(false, CABLE_SMOOTH),
-        ZIG(false, CABLE_SMOOTH),
-        ZAG(false, CABLE_SMOOTH),
-        HORIZ(false, CABLE_SMOOTH),
-        RINGBAR(false, CABLE_SMOOTH),
+        FAR(false, CABLE_SMOOTH),
         RING(false, CABLE_SMOOTH),
-        VERT(false, CABLE_SMOOTH),
+        CROSS(false, CABLE_SMOOTH),
         TEMP(false, CABLE_SMOOTH),
         GONE(false, CABLE_SMOOTH);
 
