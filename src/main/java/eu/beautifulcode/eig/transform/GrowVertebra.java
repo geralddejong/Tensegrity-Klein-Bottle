@@ -170,7 +170,7 @@ public class GrowVertebra implements Fabric.Transformation {
                     value = new Val(role, 0.5);
                     break;
                 case SCAFFOLD:
-                    value = new Val(role, 1.3);
+                    value = new Val(role, 1.7);
                     break;
                 case FAR:
                     value = new Val(role, 0.4);

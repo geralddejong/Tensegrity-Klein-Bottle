@@ -91,8 +91,8 @@ public class TensegrityKlein extends Frame {
     private DoubleRangeModel dragModel = new DoubleRangeModel(verticalPhysicsConstraints.getAirDrag(), 10);
     private DoubleRangeModel subGravityModel = new DoubleRangeModel(verticalPhysicsConstraints.getLandGravity(), 100);
     private DoubleRangeModel subDragModel = new DoubleRangeModel(verticalPhysicsConstraints.getLandDrag(), 10);
-    private SpinnerNumberModel girthModel = new SpinnerNumberModel(12, 3, 60, 1);
-    private SpinnerNumberModel lengthModel = new SpinnerNumberModel(12, 1, 60, 1);
+    private SpinnerNumberModel girthModel = new SpinnerNumberModel(20, 3, 100, 1);
+    private SpinnerNumberModel lengthModel = new SpinnerNumberModel(60, 1, 100, 1);
     private IntervalFamily ring = new IntervalFamily(Interval.Role.RING, 0.6, 2);
     private IntervalFamily far = new IntervalFamily(Interval.Role.FAR, 0.6, 2);
     private IntervalFamily bar = new IntervalFamily(Interval.Role.BAR, 1.7, 2);
@@ -102,7 +102,7 @@ public class TensegrityKlein extends Frame {
     private Fabric fabric;
     private boolean running = true;
     private boolean physicsActive = true;
-    private boolean recordMovie;
+    private boolean recordMovie, stopMovie;
     private int step;
 
     class IntervalFamily {
@@ -152,8 +152,8 @@ public class TensegrityKlein extends Frame {
         p.add(createCylinderPanel(), gbc);
         gbc.gridy++;
         p.add(createPhysicsPanel(), gbc);
-//        gbc.gridy++;
-//        p.add(createMoviePanel(), gbc);
+        gbc.gridy++;
+        p.add(createMoviePanel(), gbc);
         createButton("Center", p, gbc, new Runnable() {
             public void run() {
                 fabric.addTransformation(new AboveFloor(1));
@@ -214,14 +214,20 @@ public class TensegrityKlein extends Frame {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.gridy = 0;
         gbc.weightx = 1;
+        createButton("Snapshot", p, gbc, new Runnable() {
+            public void run() {
+                recordMovie = stopMovie = true;
+            }
+        });
         createButton("Record", p, gbc, new Runnable() {
             public void run() {
                 recordMovie = true;
+                stopMovie = false;
             }
         });
         createButton("Stop", p, gbc, new Runnable() {
             public void run() {
-                recordMovie = false;
+                stopMovie = true;
             }
         });
         return p;
@@ -485,6 +491,7 @@ public class TensegrityKlein extends Frame {
                     e.printStackTrace(System.out);
                     recordMovie = false;
                 }
+                if (stopMovie) recordMovie = false;
             }
             positioner.run();
         }
