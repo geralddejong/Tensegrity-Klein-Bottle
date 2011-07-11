@@ -4,7 +4,6 @@
  */
 package eu.beautifulcode.eig.gui;
 
-import com.sun.opengl.util.Screenshot;
 import eu.beautifulcode.eig.jogl.EllipsoidPainter;
 import eu.beautifulcode.eig.jogl.Floor;
 import eu.beautifulcode.eig.jogl.GLRenderer;
@@ -12,6 +11,7 @@ import eu.beautifulcode.eig.jogl.GLViewPlatform;
 import eu.beautifulcode.eig.jogl.IntervalLabelPainter;
 import eu.beautifulcode.eig.jogl.LinePainter;
 import eu.beautifulcode.eig.jogl.PointOfView;
+import eu.beautifulcode.eig.povray.POVScriptGenerator;
 import eu.beautifulcode.eig.structure.Fabric;
 import eu.beautifulcode.eig.structure.Interval;
 import eu.beautifulcode.eig.structure.Physics;
@@ -98,11 +98,11 @@ public class TensegrityKlein extends Frame {
     private IntervalFamily bar = new IntervalFamily(Interval.Role.BAR, 1.7, 2);
     private IntervalFamily cross = new IntervalFamily(Interval.Role.CROSS, 1, 2);
     private JCheckBox zigzagBox = new JCheckBox("Zigzag", true);
+    private POVScriptGenerator povScriptGenerator = new POVScriptGenerator(new File("POV"), pointOfView);
 
     private Fabric fabric;
     private boolean running = true;
     private boolean physicsActive = true;
-    private boolean recordMovie, stopMovie;
     private int step;
 
     class IntervalFamily {
@@ -216,18 +216,17 @@ public class TensegrityKlein extends Frame {
         gbc.weightx = 1;
         createButton("Snapshot", p, gbc, new Runnable() {
             public void run() {
-                recordMovie = stopMovie = true;
+                povScriptGenerator.recordImage();
             }
         });
         createButton("Record", p, gbc, new Runnable() {
             public void run() {
-                recordMovie = true;
-                stopMovie = false;
+                povScriptGenerator.startMovie();
             }
         });
         createButton("Stop", p, gbc, new Runnable() {
             public void run() {
-                stopMovie = true;
+                povScriptGenerator.endMovie();
             }
         });
         return p;
@@ -483,16 +482,9 @@ public class TensegrityKlein extends Frame {
                 jobs.remove().run();
             }
             floor.display(gl);
-            if (recordMovie) {
-                try {
-                    Screenshot.writeToTargaFile(new File("/tmp/TK" + formatter.format(frameNumber++) + ".tga"), width, height);
-                }
-                catch (IOException e) {
-                    e.printStackTrace(System.out);
-                    recordMovie = false;
-                }
-                if (stopMovie) recordMovie = false;
-            }
+            povScriptGenerator.startFrame();
+            povScriptGenerator.visit(fabric);
+            povScriptGenerator.endFrame();
             positioner.run();
         }
 
