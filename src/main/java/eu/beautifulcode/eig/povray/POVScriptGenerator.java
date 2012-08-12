@@ -76,18 +76,18 @@ public class POVScriptGenerator {
 
         private ImageRecorder() {
             this.fileMap = files.nextImage();
-            createHeader(POVFiles.Script.HEADER, 0);
-            createHeader(POVFiles.Script.HEADER_LEFT, pointOfView.getDistance() * EYE_DISPLACEMENT);
-            createHeader(POVFiles.Script.HEADER_RIGHT, -pointOfView.getDistance() * EYE_DISPLACEMENT);
+            createHeader(POVFiles.Script.HEADER);
+//            createHeader(POVFiles.Script.HEADER_LEFT, pointOfView.getDistance() * EYE_DISPLACEMENT);
+//            createHeader(POVFiles.Script.HEADER_RIGHT, -pointOfView.getDistance() * EYE_DISPLACEMENT);
             this.body = createWriter(POVFiles.Script.BODY);
         }
 
-        private void createHeader(POVFiles.Script script, double eyeDisplacement) {
-            writeHeader(eyeDisplacement, createWriter(script));
+        private void createHeader(POVFiles.Script script) {
+            writeHeader(createWriter(script));
         }
 
         public void visit(Fabric fabric) {
-            writeFabric(fabric, body);
+            writeFabric(fabric, pointOfView, 0, body);
         }
 
         public void finish() {
@@ -121,9 +121,9 @@ public class POVScriptGenerator {
 
         private MovieRecorder() {
             this.fileMap = files.nextMovie();
-            createHeader(POVFiles.Script.HEADER, 0);
-            createHeader(POVFiles.Script.HEADER_LEFT, EYE_DISPLACEMENT);
-            createHeader(POVFiles.Script.HEADER_RIGHT, -EYE_DISPLACEMENT);
+            createHeader(POVFiles.Script.HEADER);
+//            createHeader(POVFiles.Script.HEADER_LEFT, EYE_DISPLACEMENT);
+//            createHeader(POVFiles.Script.HEADER_RIGHT, -EYE_DISPLACEMENT);
             this.body = createWriter(POVFiles.Script.BODY);
         }
 
@@ -133,7 +133,7 @@ public class POVScriptGenerator {
         }
 
         public void visit(Fabric fabric) {
-            writeFabric(fabric, body);
+            writeFabric(fabric, pointOfView, 0, body);
         }
 
         public void endFrame() {
@@ -158,8 +158,8 @@ public class POVScriptGenerator {
             finished = true;
         }
 
-        private void createHeader(POVFiles.Script script, double eyeDisplacement) {
-            writeHeader(eyeDisplacement, createWriter(script));
+        private void createHeader(POVFiles.Script script) {
+            writeHeader(createWriter(script));
         }
 
         private PrintWriter createWriter(POVFiles.Script script) {
@@ -178,14 +178,13 @@ public class POVScriptGenerator {
         }
     }
 
-    private void writeHeader(double eyeDisplacement, PrintWriter out) {
+    private void writeHeader(PrintWriter out) {
         writeTitles(out);
         writeIncludes(out);
         writeDeclarations(out);
         createFog(out);
         createLight(pointOfView, out);
         writeFloor(out);
-        createCamera(pointOfView, eyeDisplacement, out);
         out.close();
     }
 
@@ -227,7 +226,7 @@ public class POVScriptGenerator {
         writer.println("     < 0, 0, 1 >, 0");
         writer.println("     texture { T_Stone24 }");
         writer.println("     rotate z*60");
-        writer.println("     scale 0.1");
+        writer.println("     scale 5");
         writer.println("  }");
         writer.println("}");
         writer.println();
@@ -285,9 +284,10 @@ public class POVScriptGenerator {
 
     private static final double TO_DEGREES = 180.0 / Math.PI;
 
-    private static void writeFabric(Fabric fabric, PrintWriter out) {
+    private static void writeFabric(Fabric fabric, PointOfView pointOfView, double eyeDisplacement, PrintWriter out) {
         Arrow location = new Arrow();
         Arrow axis = new Arrow();
+        createCamera(pointOfView, eyeDisplacement, out);
         for (Interval interval : fabric.getIntervals()) {
             switch (interval.getRole()) {
                 case BAR:
