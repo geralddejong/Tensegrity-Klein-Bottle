@@ -5,6 +5,7 @@
 package eu.beautifulcode.eig.jogl;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 
 /**
  * Something to be seen in a GLViewPlatform will have to implement these functions.
@@ -20,7 +21,7 @@ public interface GLRenderer {
      * @param gl the graphics context
      */
 
-    void init(GL gl);
+    void init(GL2 gl);
 
     /**
      * Display the things you have to show.
@@ -30,6 +31,6 @@ public interface GLRenderer {
      * @param height canvas
      */
 
-    void display(GL gl, int width, int height);
+    void display(GL2 gl, int width, int height);
 
 }

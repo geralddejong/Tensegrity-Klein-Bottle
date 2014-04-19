@@ -9,7 +9,11 @@ import eu.beautifulcode.eig.structure.Joint;
 import eu.beautifulcode.eig.structure.Tetra;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 import java.util.List;
+
+import static javax.media.opengl.GL.*;
+import static javax.media.opengl.GL2.*;
 
 /**
  * Something to be seen in a GLViewPlatform will have to implement these functions.
@@ -28,15 +32,15 @@ public class TetraPainter {
     private Arrow b = new Arrow();
     private Arrow c = new Arrow();
     private Arrow d = new Arrow();
-    private GL gl;
+    private GL2 gl;
 
-    public void preVisit(GL gl) {
+    public void preVisit(GL2 gl) {
         this.gl = gl;
-        gl.glMaterialfv(GL.GL_FRONT, GL.GL_SPECULAR, SPECULAR.getFloatArray(), 0);
-        gl.glMaterialf(GL.GL_FRONT, GL.GL_SHININESS, SHININESS);
-        gl.glEnable(GL.GL_LIGHTING);
-        gl.glMaterialfv(GL.GL_FRONT, GL.GL_AMBIENT_AND_DIFFUSE, AMBIENT_AND_DIFFUSE.getFloatArray(), 0);
-        gl.glBegin(GL.GL_TRIANGLES);
+        gl.glMaterialfv(GL_FRONT, GL_SPECULAR, SPECULAR.getFloatArray(), 0);
+        gl.glMaterialf(GL_FRONT, GL_SHININESS, SHININESS);
+        gl.glEnable(GL_LIGHTING);
+        gl.glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, AMBIENT_AND_DIFFUSE.getFloatArray(), 0);
+        gl.glBegin(GL_TRIANGLES);
     }
 
     public void postVisit() {

@@ -6,7 +6,8 @@
 package org.darwinathome.geometry;
 
 import javax.media.opengl.GL;
-import javax.media.opengl.GLCanvas;
+import javax.media.opengl.GL2;
+import javax.media.opengl.awt.GLCanvas;
 import javax.swing.*;
 
 import eu.beautifulcode.eig.gui.Positioner;
@@ -35,6 +36,8 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+
+import static javax.media.opengl.GL2.*;
 
 /**
  * @author Gerald de Jong <geralddejong@gmail.com>
@@ -108,12 +111,12 @@ public class ViewTest extends Frame {
         private JointWhoPainter jointWhoPainter = new JointWhoPainter(pointOfView);
         private FacePainter facePainter = new FacePainter(new StressRange());
 
-        public void init(GL gl) {
+        public void init(GL2 gl) {
             ellipsoidPainter.setWidth(0.02);
         }
 
-        public void display(GL gl, int width, int height) {
-            gl.glLightfv(GL.GL_LIGHT0, GL.GL_POSITION, LIGHT_POSITION, 0);
+        public void display(GL2 gl, int width, int height) {
+            gl.glLightfv(GL_LIGHT0, GL_POSITION, LIGHT_POSITION, 0);
             Fabric fabric = ViewTest.this.fabric;
             if (fabric != null) {
                 ellipsoidPainter.preVisit(gl);

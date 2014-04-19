@@ -7,8 +7,11 @@ package eu.beautifulcode.eig.jogl;
 import eu.beautifulcode.eig.math.Arrow;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 import javax.media.opengl.glu.GLU;
 import javax.media.opengl.glu.GLUquadric;
+
+import static javax.media.opengl.GL2.*;
 
 /**
  * Paint a location
@@ -35,15 +38,15 @@ public class BallPainter {
         this.hilighted = hilighted;
     }
 
-    public void paint(GL gl, Arrow arrow) {
-        gl.glEnable(GL.GL_LIGHTING);
-        gl.glMaterialfv(GL.GL_FRONT, GL.GL_SPECULAR, SPECULAR.getFloatArray(), 0);
-        gl.glMaterialf(GL.GL_FRONT, GL.GL_SHININESS, SHININESS);
+    public void paint(GL2 gl, Arrow arrow) {
+        gl.glEnable(GL_LIGHTING);
+        gl.glMaterialfv(GL.GL_FRONT, GL_SPECULAR, SPECULAR.getFloatArray(), 0);
+        gl.glMaterialf(GL.GL_FRONT, GL_SHININESS, SHININESS);
         if (hilighted) {
-            gl.glMaterialfv(GL.GL_FRONT, GL.GL_AMBIENT_AND_DIFFUSE, REDDISH.getFloatArray(), 0);
+            gl.glMaterialfv(GL.GL_FRONT, GL_AMBIENT_AND_DIFFUSE, REDDISH.getFloatArray(), 0);
         }
         else {
-            gl.glMaterialfv(GL.GL_FRONT, GL.GL_AMBIENT_AND_DIFFUSE, GREENISH.getFloatArray(), 0);
+            gl.glMaterialfv(GL.GL_FRONT, GL_AMBIENT_AND_DIFFUSE, GREENISH.getFloatArray(), 0);
         }
         gl.glPushMatrix();
         gl.glTranslated(arrow.x, arrow.y, arrow.z);

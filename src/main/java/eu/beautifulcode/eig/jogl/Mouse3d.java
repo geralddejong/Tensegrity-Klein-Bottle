@@ -3,6 +3,7 @@ package eu.beautifulcode.eig.jogl;
 import eu.beautifulcode.eig.math.Arrow;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 import java.awt.Component;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -22,7 +23,7 @@ public class Mouse3d {
     private Adapter adapter = new Adapter();
 
     public interface PickRaySource {
-        void getPickRay(GL gl, double mouseX, double mouseY, Arrow location, Arrow direction);
+        void getPickRay(GL2 gl, double mouseX, double mouseY, Arrow location, Arrow direction);
     }
 
     public Mouse3d(PickRaySource pickRaySource) {
@@ -34,7 +35,7 @@ public class Mouse3d {
         component.addMouseMotionListener(adapter);
     }
 
-    public Event getEvent(GL gl) {
+    public Event getEvent(GL2 gl) {
         if (events.isEmpty()) {
             return null;
         }
@@ -120,7 +121,7 @@ public class Mouse3d {
             }
         }
 
-        Event resolve(GL gl) {
+        Event resolve(GL2 gl) {
             pickRaySource.getPickRay(gl, mouseEvent.getX(), mouseEvent.getY(), location, direction);
             return this;
         }

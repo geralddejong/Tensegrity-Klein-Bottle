@@ -5,6 +5,8 @@
 package eu.beautifulcode.eig.jogl;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
+
 import eu.beautifulcode.eig.math.Arrow;
 
 import java.util.ArrayList;
@@ -28,7 +30,7 @@ public class Floor {
         }
     }
 
-    public void display(GL gl) {
+    public void display(GL2 gl) {
         painter.prePaint(gl, 0);
         gl.glColor3f(0,0.6f,0);
         painter.paint(corners.get(0), corners.get(1), corners.get(2));

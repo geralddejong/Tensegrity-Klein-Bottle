@@ -12,7 +12,11 @@ import eu.beautifulcode.eig.structure.Joint;
 import eu.beautifulcode.eig.structure.Span;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 import java.util.List;
+
+import static javax.media.opengl.GL.*;
+import static javax.media.opengl.GL2.*;
 
 /**
  * Paint a fabric in various ways
@@ -28,7 +32,7 @@ public class FabricPainter {
         this.stressRange = stressRange;
     }
 
-    public void paintTexture(Fabric fabric, GL gl) {
+    public void paintTexture(Fabric fabric, GL2 gl) {
         painter.prePaint(gl, 0);
         for (Face face : fabric.getFaces()) {
             paintFace(face, gl);
@@ -36,10 +40,10 @@ public class FabricPainter {
         painter.postPaint();
     }
 
-    public void paintLines(Fabric fabric, GL gl, Tint tint) {
-        gl.glDisable(GL.GL_LIGHTING);
-        gl.glDisable(GL.GL_TEXTURE_2D);
-        gl.glBegin(GL.GL_LINES);
+    public void paintLines(Fabric fabric, GL2 gl, Tint tint) {
+        gl.glDisable(GL_LIGHTING);
+        gl.glDisable(GL_TEXTURE_2D);
+        gl.glBegin(GL_LINES);
         for (Interval interval : fabric.getIntervals()) {
             if (tint != null) {
                 gl.glColor3fv(tint.getFloatArray(), 0);
@@ -54,11 +58,11 @@ public class FabricPainter {
         gl.glEnd();
     }
 
-    private void paintVertex(GL gl, Arrow location) {
+    private void paintVertex(GL2 gl, Arrow location) {
         gl.glVertex3d(location.x, location.y, location.z);
     }
 
-    private void paintFace(Face face, GL gl) {
+    private void paintFace(Face face, GL2 gl) {
         if (face.getJoints().size() != 3) return;
         if (stressRange != null) {
             setColor(face.getStressInterval(), gl);
@@ -77,7 +81,7 @@ public class FabricPainter {
         }
     }
 
-    private void setColor(Interval stressInterval, GL gl) {
+    private void setColor(Interval stressInterval, GL2 gl) {
         if (stressInterval != null) {
             double stress = stressInterval.getSpan().getStress(stressRange);
             gl.glColor3d(

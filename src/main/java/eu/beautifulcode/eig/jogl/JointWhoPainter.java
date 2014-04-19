@@ -1,6 +1,8 @@
 package eu.beautifulcode.eig.jogl;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
+
 import eu.beautifulcode.eig.math.Arrow;
 import eu.beautifulcode.eig.structure.Joint;
 
@@ -13,7 +15,7 @@ import eu.beautifulcode.eig.structure.Joint;
 public class JointWhoPainter {
     private PointOfView pointOfView;
     private TextureFont textureFont = new TextureFont();
-    private GL gl;
+    private GL2 gl;
     private Arrow forward = new Arrow();
 
     public JointWhoPainter(PointOfView pointOfView) {
@@ -22,7 +24,7 @@ public class JointWhoPainter {
         textureFont.setScale(2f);
     }
 
-    public void preVisit(GL gl) {
+    public void preVisit(GL2 gl) {
         this.gl = gl;
         textureFont.ensureInitialized(gl);
     }

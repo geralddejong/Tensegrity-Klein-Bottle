@@ -9,6 +9,8 @@ import eu.beautifulcode.eig.structure.Face;
 import eu.beautifulcode.eig.structure.Span;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
+
 
 /**
  * Something to be seen in a GLViewPlatform will have to implement these functions.
@@ -26,7 +28,7 @@ public class FacePainter {
     private Arrow mid = new Arrow();
     private Arrow a = new Arrow();
     private Arrow b = new Arrow();
-    private GL gl;
+    private GL2 gl;
     private Span.StressRange range;
 
     public FacePainter(Span.StressRange range) {
@@ -37,11 +39,11 @@ public class FacePainter {
         return range;
     }
 
-    public void preVisit(GL gl) {
+    public void preVisit(GL2 gl) {
         this.gl = gl;
-        gl.glMaterialfv(GL.GL_FRONT, GL.GL_SPECULAR, SPECULAR.getFloatArray(), 0);
-        gl.glMaterialf(GL.GL_FRONT, GL.GL_SHININESS, SHININESS);
-        gl.glEnable(GL.GL_LIGHTING);
+        gl.glMaterialfv(GL.GL_FRONT, GL2.GL_SPECULAR, SPECULAR.getFloatArray(), 0);
+        gl.glMaterialf(GL.GL_FRONT, GL2.GL_SHININESS, SHININESS);
+        gl.glEnable(GL2.GL_LIGHTING);
     }
 
     public void visit(Face face) {
@@ -55,10 +57,10 @@ public class FacePainter {
             else {
                 AMBIENT_AND_DIFFUSE.set(Tint.RED, BORING, stress * 2);
             }
-            gl.glMaterialfv(GL.GL_FRONT, GL.GL_AMBIENT_AND_DIFFUSE, AMBIENT_AND_DIFFUSE.getFloatArray(), 0);
+            gl.glMaterialfv(GL.GL_FRONT, GL2.GL_AMBIENT_AND_DIFFUSE, AMBIENT_AND_DIFFUSE.getFloatArray(), 0);
         }
         else {
-            gl.glMaterialfv(GL.GL_FRONT, GL.GL_AMBIENT_AND_DIFFUSE, BORING.getFloatArray(), 0);
+            gl.glMaterialfv(GL.GL_FRONT, GL2.GL_AMBIENT_AND_DIFFUSE, BORING.getFloatArray(), 0);
         }
         face.getNormal(normal, mid, cross, a, b);
         gl.glNormal3d(normal.x, normal.y, normal.z);

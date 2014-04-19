@@ -5,9 +5,14 @@
 package eu.beautifulcode.eig.jogl;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
+
 import eu.beautifulcode.eig.math.Arrow;
 import eu.beautifulcode.eig.structure.Interval;
 import eu.beautifulcode.eig.structure.Span;
+
+import static javax.media.opengl.GL.*;
+import static javax.media.opengl.GL2.*;
 
 /**
  * Something to be seen in a GLViewPlatform will have to implement these functions.
@@ -16,7 +21,7 @@ import eu.beautifulcode.eig.structure.Span;
  */
 
 public class LinePainter {
-    private GL gl;
+    private GL2 gl;
     private Span.StressRange range;
 
     public LinePainter(Span.StressRange range) {
@@ -27,13 +32,13 @@ public class LinePainter {
         return range;
     }
 
-    public void preVisit(GL gl) {
+    public void preVisit(GL2 gl) {
         this.gl = gl;
-        gl.glDisable(GL.GL_LIGHTING);
-        gl.glBegin(GL.GL_LINES);
+        gl.glDisable(GL_LIGHTING);
+        gl.glBegin(GL_LINES);
     }
 
-    public void postVisit(GL gl) {
+    public void postVisit(GL2 gl) {
         gl.glEnd();
     }
 

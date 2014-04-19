@@ -10,7 +10,8 @@ import eu.beautifulcode.eig.math.Sphere;
 import eu.beautifulcode.eig.math.Vertex;
 
 import javax.media.opengl.GL;
-import javax.media.opengl.GLCanvas;
+import javax.media.opengl.GL2;
+import javax.media.opengl.awt.GLCanvas;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -19,6 +20,9 @@ import java.awt.event.WindowEvent;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+
+import static javax.media.opengl.GL.*;
+import static javax.media.opengl.GL2.*;
 
 /**
  * @author Gerald de Jong
@@ -96,13 +100,13 @@ public class ConwayLifeSphere extends Frame {
 
     private class Renderer implements GLRenderer {
 
-        public void init(GL gl) {
-            gl.glShadeModel(GL.GL_SMOOTH);
+        public void init(GL2 gl) {
+            gl.glShadeModel(GL_SMOOTH);
             hexagonShape = createVertexGLShape(gl, false);
             pentagonShape = createVertexGLShape(gl, true);
         }
 
-        public void display(GL gl, int width, int height) {
+        public void display(GL2 gl, int width, int height) {
             gl.glColor3f(1f, 1f, 1f);
             painter.prepareForVisit(gl);
             SPHERE.admitVisitor(painter);
@@ -144,13 +148,13 @@ public class ConwayLifeSphere extends Frame {
         thread.start();
     }
 
-    public void init(GL gl) {
-        gl.glShadeModel(GL.GL_SMOOTH);
+    public void init(GL2 gl) {
+        gl.glShadeModel(GL_SMOOTH);
         hexagonShape = createVertexGLShape(gl, false);
         pentagonShape = createVertexGLShape(gl, true);
     }
 
-    public void render(GL gl) {
+    public void render(GL2 gl) {
         gl.glColor3f(1f, 1f, 1f);
         painter.prepareForVisit(gl);
         SPHERE.admitVisitor(painter);
@@ -165,13 +169,13 @@ public class ConwayLifeSphere extends Frame {
         private Arrow vertexVector = new Arrow();
         private double[] matrix = new double[16];
         private double vertexScaleFactor;
-        private GL gl;
+        private GL2 gl;
 
         public JoglSphereVertexPainter(Arrow eye) {
             this.eye = eye;
         }
 
-        public void prepareForVisit(GL gl) {
+        public void prepareForVisit(GL2 gl) {
             this.gl = gl;
             this.vertexScaleFactor = 8.0 / SPHERE.getFrequency();
             eyeVector.set(eye);
@@ -208,7 +212,7 @@ public class ConwayLifeSphere extends Frame {
             matrix[15] = 1f;
         }
 
-        private void displayVertex(GL gl, Vertex<Occupant> vertex) {
+        private void displayVertex(GL2 gl, Vertex<Occupant> vertex) {
             gl.glPushMatrix();
             zAxis.set(vertex.getLocation());
             zAxis.normalize();
@@ -253,14 +257,14 @@ public class ConwayLifeSphere extends Frame {
         }
     }
 
-    public static int createVertexGLShape(GL gl, boolean pentagon) {
+    public static int createVertexGLShape(GL2 gl, boolean pentagon) {
         int list = gl.glGenLists(1);
-        gl.glNewList(list, GL.GL_COMPILE);
-        gl.glMaterialfv(GL.GL_FRONT, GL.GL_AMBIENT, Tint.WHITE.getFloatArray(), 0);
-        gl.glMaterialfv(GL.GL_FRONT, GL.GL_DIFFUSE, Tint.WHITE.getFloatArray(), 0);
-        gl.glMaterialfv(GL.GL_FRONT, GL.GL_SPECULAR, Tint.BLACK.getFloatArray(), 0);
-        gl.glMaterialf(GL.GL_FRONT, GL.GL_SHININESS, 0f);
-        gl.glBegin(GL.GL_TRIANGLES);
+        gl.glNewList(list, GL_COMPILE);
+        gl.glMaterialfv(GL_FRONT, GL_AMBIENT, Tint.WHITE.getFloatArray(), 0);
+        gl.glMaterialfv(GL_FRONT, GL_DIFFUSE, Tint.WHITE.getFloatArray(), 0);
+        gl.glMaterialfv(GL_FRONT, GL_SPECULAR, Tint.BLACK.getFloatArray(), 0);
+        gl.glMaterialf(GL_FRONT, GL_SHININESS, 0f);
+        gl.glBegin(GL_TRIANGLES);
         gl.glNormal3f(0, 0, 1);
         int stepDegrees = pentagon ? 72 : 60;
         int weirdRotation = pentagon ? -18 : 0;

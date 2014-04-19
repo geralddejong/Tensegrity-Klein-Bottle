@@ -4,12 +4,12 @@
  */
 package eu.beautifulcode.eig.jogl;
 
-import com.sun.opengl.util.Screenshot;
-import com.sun.opengl.util.j2d.TextRenderer;
+import com.jogamp.opengl.util.awt.TextRenderer;
 import eu.beautifulcode.eig.math.Arrow;
 import eu.beautifulcode.eig.math.Space4;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.glu.GLU;
@@ -75,23 +75,28 @@ public class GLViewPlatform implements GLEventListener, Mouse3d.PickRaySource {
     }
 
     public final void init(GLAutoDrawable drawable) {
-        GL gl = drawable.getGL();
-        gl.glLightModelfv(GL.GL_LIGHT_MODEL_AMBIENT, LIGHT_MODEL_AMBIENT.getFloatArray(), 0);
-        gl.glLightf(GL.GL_LIGHT0, GL.GL_CONSTANT_ATTENUATION, 0.0f);
-        gl.glLightf(GL.GL_LIGHT0, GL.GL_LINEAR_ATTENUATION, 0.1f);
-        gl.glLightf(GL.GL_LIGHT0, GL.GL_QUADRATIC_ATTENUATION, 0.6f);
-        gl.glEnable(GL.GL_CULL_FACE);
-        gl.glEnable(GL.GL_LIGHTING);
-        gl.glEnable(GL.GL_LIGHT0);
-        gl.glEnable(GL.GL_DEPTH_TEST);
-        gl.glEnable(GL.GL_LINE_SMOOTH);
-        gl.glEnable(GL.GL_NORMALIZE);
+        GL2 gl =(GL2) drawable.getGL();
+        gl.glLightModelfv(GL2.GL_LIGHT_MODEL_AMBIENT, LIGHT_MODEL_AMBIENT.getFloatArray(), 0);
+        gl.glLightf(GL2.GL_LIGHT0, GL2.GL_CONSTANT_ATTENUATION, 0.0f);
+        gl.glLightf(GL2.GL_LIGHT0, GL2.GL_LINEAR_ATTENUATION, 0.1f);
+        gl.glLightf(GL2.GL_LIGHT0, GL2.GL_QUADRATIC_ATTENUATION, 0.6f);
+        gl.glEnable(GL2.GL_CULL_FACE);
+        gl.glEnable(GL2.GL_LIGHTING);
+        gl.glEnable(GL2.GL_LIGHT0);
+        gl.glEnable(GL2.GL_DEPTH_TEST);
+        gl.glEnable(GL2.GL_LINE_SMOOTH);
+        gl.glEnable(GL2.GL_NORMALIZE);
         renderer.init(gl);
     }
 
+    @Override
+    public void dispose(GLAutoDrawable glAutoDrawable) {
+
+    }
+
     public final void display(GLAutoDrawable glAutoDrawable) {
-        GL gl = glAutoDrawable.getGL();
-        gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+        GL2 gl = (GL2)glAutoDrawable.getGL();
+        gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
         gl.glPushMatrix();
         setEye();
         Arrow focus = pov.getFocus();
@@ -126,7 +131,7 @@ public class GLViewPlatform implements GLEventListener, Mouse3d.PickRaySource {
     }
 
     public final void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
-        GL gl = drawable.getGL();
+        GL2 gl = (GL2) drawable.getGL();
         this.width = width;
         this.height = height;
         double factor = (double) height * 4e-4;
@@ -135,22 +140,22 @@ public class GLViewPlatform implements GLEventListener, Mouse3d.PickRaySource {
         right = aspectRatio * factor;
         bottom = -factor;
         top = factor;
-        gl.glMatrixMode(GL.GL_PROJECTION);
+        gl.glMatrixMode(GL2.GL_PROJECTION);
         gl.glLoadIdentity();
         gl.glFrustum(left, right, bottom, top, frustumNear, frustumFar);
-        gl.glMatrixMode(GL.GL_MODELVIEW);
+        gl.glMatrixMode(GL2.GL_MODELVIEW);
         gl.glLoadIdentity();
     }
 
     public final void displayChanged(GLAutoDrawable drawable, boolean b, boolean b1) {
     }
 
-    public void getPickRay(GL gl, double mouseX, double mouseY, Arrow location, Arrow direction) {
+    public void getPickRay(GL2 gl, double mouseX, double mouseY, Arrow location, Arrow direction) {
         location.set(pov.getEye());
         double x = left + mouseX / width * (right - left);
         double y = top + mouseY / height * (bottom - top);
         direction.set(x, y, -frustumNear);
-        gl.glGetDoublev(GL.GL_MODELVIEW_MATRIX, elements, 0);
+        gl.glGetDoublev(GL2.GL_MODELVIEW_MATRIX, elements, 0);
         modelView.set(elements);
         modelView.transform(direction);
         direction.normalize();
@@ -311,17 +316,17 @@ public class GLViewPlatform implements GLEventListener, Mouse3d.PickRaySource {
         }
 
         private void display() {
-            if (snapshotCountdown-- == 0) {
-                try {
-                    String frameFileName = movieName + FRAME_NUMBER_FORMATTER.format(frameNumber++) + ".tga";
-                    Screenshot.writeToTargaFile(new File(movieDirectory, frameFileName), width, height);
-                    snapshotCountdown = displaysPerFrame;
-                }
-                catch (IOException e) {
-                    e.printStackTrace();
-                    movieDirectory = null;
-                }
-            }
+//            if (snapshotCountdown-- == 0) {
+//                try {
+//                    String frameFileName = movieName + FRAME_NUMBER_FORMATTER.format(frameNumber++) + ".tga";
+//                    Screenshot.writeToTargaFile(new File(movieDirectory, frameFileName), width, height);
+//                    snapshotCountdown = displaysPerFrame;
+//                }
+//                catch (IOException e) {
+//                    e.printStackTrace();
+//                    movieDirectory = null;
+//                }
+//            }
         }
     }
 }

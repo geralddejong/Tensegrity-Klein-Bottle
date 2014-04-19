@@ -5,6 +5,8 @@
 package eu.beautifulcode.eig.jogl;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
+
 import eu.beautifulcode.eig.math.Arrow;
 
 import java.io.IOException;
@@ -28,13 +30,13 @@ public class TextureTrianglePainter {
     private Arrow mid = new Arrow();
     private Arrow v0 = new Arrow();
     private Arrow v1 = new Arrow();
-    private GL gl;
+    private GL2 gl;
 
     public TextureTrianglePainter(String... resource) {
         this.resource = resource;
     }
 
-    public void prePaint(GL gl, int textureIndex) {
+    public void prePaint(GL2 gl, int textureIndex) {
         if (texture == null) {
             try {
                 texture = TextureLoader.getTextures(gl, resource);
@@ -43,7 +45,7 @@ public class TextureTrianglePainter {
                 throw new RuntimeException("Unable to load image", e);
             }
         }
-        gl.glDisable(GL.GL_LIGHTING);
+        gl.glDisable(GL2.GL_LIGHTING);
         gl.glEnable(GL.GL_TEXTURE_2D);
         gl.glBindTexture(GL.GL_TEXTURE_2D, texture[textureIndex]);
         gl.glBegin(GL.GL_TRIANGLES);
@@ -73,7 +75,7 @@ public class TextureTrianglePainter {
     public void postPaint() {
         gl.glEnd();
         gl.glDisable(GL.GL_TEXTURE_2D);
-        gl.glEnable(GL.GL_LIGHTING);
+        gl.glEnable(GL2.GL_LIGHTING);
     }
 
     private void crossToNormal(Arrow a0, Arrow a1) {
@@ -86,7 +88,7 @@ public class TextureTrianglePainter {
         }
     }
 
-    private void displayCorner(Arrow location, int corner, GL gl) {
+    private void displayCorner(Arrow location, int corner, GL2 gl) {
         gl.glTexCoord2f(TEX_COORD[corner][0], 1 - TEX_COORD[corner][1]);
         gl.glVertex3d(location.x, location.y, location.z);
     }

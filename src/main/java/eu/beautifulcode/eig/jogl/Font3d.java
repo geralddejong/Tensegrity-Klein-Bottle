@@ -6,8 +6,10 @@
 // ===================================================================
 package eu.beautifulcode.eig.jogl;
 
-import com.sun.opengl.util.j2d.TextRenderer;
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
+
+import com.jogamp.opengl.util.awt.TextRenderer;
 import eu.beautifulcode.eig.math.Arrow;
 
 import java.awt.Font;
@@ -57,7 +59,7 @@ public class Font3d {
         this.scale = scale;
     }
 
-    public void display(GL gl, String text, java.awt.Color color) {
+    public void display(GL2 gl, String text, java.awt.Color color) {
         gl.glPushMatrix();
         gl.glMultMatrixd(matrix, 0);
         gl.glScalef(scale, scale, scale);

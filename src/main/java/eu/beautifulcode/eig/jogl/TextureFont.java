@@ -5,6 +5,8 @@
 package eu.beautifulcode.eig.jogl;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
+
 import eu.beautifulcode.eig.math.Arrow;
 
 import java.awt.Color;
@@ -39,13 +41,13 @@ public class TextureFont {
         matrix[0] = matrix[5] = matrix[10] = matrix[15] = 1f;
     }
 
-    public void ensureInitialized(GL gl) {
+    public void ensureInitialized(GL2 gl) {
         if (texture < 0) {
             init(gl);
         }
     }
 
-    public void init(GL gl) {
+    public void init(GL2 gl) {
         try {
             texture = TextureLoader.getTextures(gl, "/TextureFont.png")[0];
         }
@@ -59,8 +61,8 @@ public class TextureFont {
         for (int walk = 0; walk < CHAR_COUNT; walk++) {
             float cx = (walk % TEXTURE_STEPI) / TEXTURE_STEPF;    // X Position Of Current Character
             float cy = 1 - (walk / TEXTURE_STEPI) / TEXTURE_STEPF;    // Y Position Of Current Character
-            gl.glNewList(base + walk, GL.GL_COMPILE);
-            gl.glBegin(GL.GL_QUADS);
+            gl.glNewList(base + walk, GL2.GL_COMPILE);
+            gl.glBegin(GL2.GL_QUADS);
             gl.glNormal3f(0, 0, 1f);
             gl.glTexCoord2f(cx, cy - TEXTURE_PART);   // TextureLoader Coord (Bottom Left)
             gl.glVertex2f(0, 0);    // Vertex Coord (Bottom Left)
@@ -76,8 +78,8 @@ public class TextureFont {
         }
     }
 
-    public void display(GL gl, String text, Color color) {
-        gl.glDisable(GL.GL_LIGHTING);
+    public void display(GL2 gl, String text, Color color) {
+        gl.glDisable(GL2.GL_LIGHTING);
         gl.glEnable(GL.GL_TEXTURE_2D);
         color.getRGBComponents(rgbComponents);
         gl.glColor3fv(rgbComponents, 0);
@@ -102,7 +104,7 @@ public class TextureFont {
         gl.glCallLists(text.length(), GL.GL_BYTE, ByteBuffer.wrap(text.getBytes()));
         gl.glPopMatrix();
         gl.glDisable(GL.GL_TEXTURE_2D);
-        gl.glEnable(GL.GL_LIGHTING);
+        gl.glEnable(GL2.GL_LIGHTING);
     }
 
     public void setLocation(Arrow location) {

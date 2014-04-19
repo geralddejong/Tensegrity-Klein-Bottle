@@ -24,7 +24,10 @@ import eu.beautifulcode.eig.transform.GrowVertebra;
 import org.apache.log4j.Logger;
 
 import javax.media.opengl.GL;
-import javax.media.opengl.GLCanvas;
+import javax.media.opengl.GL2;
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLProfile;
+import javax.media.opengl.awt.GLCanvas;
 import javax.swing.BorderFactory;
 import javax.swing.BoundedRangeModel;
 import javax.swing.DefaultBoundedRangeModel;
@@ -79,7 +82,7 @@ public class TensegrityKlein extends Frame {
     private Logger log = Logger.getLogger(getClass());
     private VerticalPhysicsConstraints verticalPhysicsConstraints = new VerticalPhysicsConstraints();
     private Physics physics = new Physics(verticalPhysicsConstraints);
-    private GLCanvas canvas = new GLCanvas();
+    private GLCanvas canvas;
     private Floor floor = new Floor();
     private PointOfView pointOfView = new PointOfView(10);
     private Map<Interval.Role, Physics.Value> spanMap = new TreeMap<Interval.Role, Physics.Value>();
@@ -124,6 +127,9 @@ public class TensegrityKlein extends Frame {
         super("Tensegrity Demo");
 //        floor.setMiddle(pointOfView.getFocus());
         spanMap.put(Interval.Role.SCAFFOLD, new IdealLength(Interval.Role.SCAFFOLD, 1.3));
+        GLProfile glprofile = GLProfile.getDefault();
+        GLCapabilities glcapabilities = new GLCapabilities( glprofile );
+        canvas = new GLCanvas(glcapabilities);
         canvas.setFocusable(true);
         Arrays.fill(roleVisible, true);
         GLViewPlatform viewPlatform = new GLViewPlatform(new Renderer(), pointOfView, 1, 180);
@@ -467,13 +473,13 @@ public class TensegrityKlein extends Frame {
         private DecimalFormat formatter = new DecimalFormat("00000");
         private int frameNumber;
 
-        public void init(GL gl) {
+        public void init(GL2 gl) {
             ellipsoidPainter.setWidth(0.01);
             intervalLabelPainter.setFeature(IntervalLabelPainter.Feature.ROLE);
         }
 
-        public void display(GL gl, int width, int height) {
-            gl.glLightfv(GL.GL_LIGHT0, GL.GL_POSITION, LIGHT_POSITION, 0);
+        public void display(GL2 gl, int width, int height) {
+            gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_POSITION, LIGHT_POSITION, 0);
             Fabric f = fabric;
             if (f != null) {
                 renderFabric(gl, f);
@@ -488,7 +494,7 @@ public class TensegrityKlein extends Frame {
             positioner.run();
         }
 
-        void renderFabric(GL gl, Fabric fab) {
+        void renderFabric(GL2 gl, Fabric fab) {
             if (physicsActive || step > 0) {
                 fab.executeTransformations(physics);
                 if (step > 0) {

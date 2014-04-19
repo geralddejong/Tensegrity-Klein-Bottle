@@ -1,6 +1,8 @@
 package eu.beautifulcode.eig.jogl;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
+
 import eu.beautifulcode.eig.math.Arrow;
 import eu.beautifulcode.eig.structure.Interval;
 
@@ -16,7 +18,7 @@ public class IntervalLabelPainter {
     private static final DecimalFormat FORMAT = new DecimalFormat(" 000 ");
     private PointOfView pointOfView;
     private TextureFont textureFont = new TextureFont();
-    private GL gl;
+    private GL2 gl;
     private Arrow location = new Arrow();
     private Arrow forward = new Arrow();
     private Arrow measure = new Arrow();
@@ -36,7 +38,7 @@ public class IntervalLabelPainter {
         this.feature = feature;
     }
 
-    public void preVisit(GL gl) {
+    public void preVisit(GL2 gl) {
         this.gl = gl;
         textureFont.ensureInitialized(gl);
     }

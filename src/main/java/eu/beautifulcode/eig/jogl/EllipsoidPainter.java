@@ -9,8 +9,11 @@ import eu.beautifulcode.eig.structure.Interval;
 import eu.beautifulcode.eig.structure.Span;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 import javax.media.opengl.glu.GLU;
 import javax.media.opengl.glu.GLUquadric;
+
+import static javax.media.opengl.GL2.*;
 
 /**
  * Something to be seen in a GLViewPlatform will have to implement these functions.
@@ -28,8 +31,7 @@ public class EllipsoidPainter {
     private Arrow intervalLocation = new Arrow();
     private double width = DEFAULT_WIDTH;
     private GLU glu = new GLU();
-    private GLUquadric quadric = glu.gluNewQuadric();
-    private GL gl;
+    private GL2 gl;
     private int glSphere;
     private Span.StressRange range;
 
@@ -45,13 +47,14 @@ public class EllipsoidPainter {
         this.width = width;
     }
 
-    public void preVisit(GL gl) {
+    public void preVisit(GL2 gl) {
         this.gl = gl;
-        gl.glMaterialfv(GL.GL_FRONT, GL.GL_SPECULAR, SPECULAR.getFloatArray(), 0);
-        gl.glMaterialf(GL.GL_FRONT, GL.GL_SHININESS, SHININESS);
-        gl.glEnable(GL.GL_LIGHTING);
+        gl.glMaterialfv(GL.GL_FRONT, GL_SPECULAR, SPECULAR.getFloatArray(), 0);
+        gl.glMaterialf(GL.GL_FRONT, GL_SHININESS, SHININESS);
+        gl.glEnable(GL_LIGHTING);
         glSphere = gl.glGenLists(1);
-        gl.glNewList(glSphere, GL.GL_COMPILE);
+        gl.glNewList(glSphere, GL_COMPILE);
+        GLUquadric quadric = glu.gluNewQuadric();
         glu.gluSphere(quadric,1,7,7);
         gl.glEndList();
     }
@@ -63,7 +66,7 @@ public class EllipsoidPainter {
         if (span < MINIMUM_SPAN) {
             return;
         }
-        gl.glMaterialfv(GL.GL_FRONT, GL.GL_AMBIENT_AND_DIFFUSE, AMBIENT_AND_DIFFUSE.getFloatArray(), 0);
+        gl.glMaterialfv(GL.GL_FRONT, GL_AMBIENT_AND_DIFFUSE, AMBIENT_AND_DIFFUSE.getFloatArray(), 0);
         gl.glPushMatrix();
         gl.glTranslated(intervalLocation.x, intervalLocation.y, intervalLocation.z);
         gl.glRotated(RADIANS_TO_DEGREES * Math.acos(unit.z), -unit.y, unit.x, 0);

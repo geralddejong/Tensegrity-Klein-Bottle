@@ -1,8 +1,10 @@
 package org.darwinathome.geometry;
 
-import com.sun.opengl.util.j2d.TextureRenderer;
 import javax.media.opengl.GL;
-import javax.media.opengl.GLCanvas;
+import javax.media.opengl.GL2;
+import javax.media.opengl.awt.GLCanvas;
+
+import com.jogamp.opengl.util.awt.TextureRenderer;
 import eu.beautifulcode.eig.jogl.GLRenderer;
 import eu.beautifulcode.eig.jogl.GLViewPlatform;
 import eu.beautifulcode.eig.jogl.PointOfView;
@@ -36,10 +38,10 @@ public class TextureTest extends Frame {
 
     private class Renderer implements GLRenderer {
 
-        public void init(GL gl) {
+        public void init(GL2 gl) {
         }
 
-        public void display(GL gl, int width, int height) {
+        public void display(GL2 gl, int width, int height) {
             painter.prePaint(gl, 0);
             painter.paint(a, b, c);
             painter.postPaint();
