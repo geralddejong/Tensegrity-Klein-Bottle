@@ -9,7 +9,6 @@ import eu.beautifulcode.eig.math.Arrow;
 import eu.beautifulcode.eig.math.Sphere;
 import eu.beautifulcode.eig.math.Vertex;
 
-import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 import javax.media.opengl.awt.GLCanvas;
 import java.awt.*;
@@ -161,6 +160,9 @@ public class ConwayLifeSphere extends Frame {
     }
 
     public class JoglSphereVertexPainter implements Vertex.Visitor<Occupant> {
+        private final Tint CURRENT_OR_PREVIOUS = new Tint().set(Tint.WHITE, Tint.RED, 0.75f);
+//        private final Tint CURRENT = new Tint().set(Tint.WHITE, Tint.GREEN, 0.75f);
+        private final Tint NONE = new Tint().set(Tint.WHITE, Tint.BLUE, 0.75f);
         private Arrow xAxis = new Arrow();
         private Arrow yAxis = new Arrow();
         private Arrow zAxis = new Arrow();
@@ -183,14 +185,31 @@ public class ConwayLifeSphere extends Frame {
         }
 
         public void visit(Vertex<Occupant> vertex) {
+            vertexVector.set(vertex.getLocation());
+            vertexVector.normalize();
+            double dot = vertexVector.dot(eyeVector);
+            if (dot < VISIBLE_VERTEX_DOT_PRODUCT) return;
+            Tint tint = null;
             if (vertex.getOccupant().getCurrent()) {
-                vertexVector.set(vertex.getLocation());
-                vertexVector.normalize();
-                double dot = vertexVector.dot(eyeVector);
-                if (dot > VISIBLE_VERTEX_DOT_PRODUCT) {
-                    displayVertex(gl, vertex);
+                if (vertex.getOccupant().getPrevious()) {
+                    tint = CURRENT_OR_PREVIOUS;
+                }
+                else {
+                    tint = NONE;
                 }
             }
+            else {
+                if (vertex.getOccupant().getPrevious()) {
+                    tint = CURRENT_OR_PREVIOUS;
+                }
+                else {
+                    tint = NONE;
+                }
+            }
+            gl.glMaterialfv(GL_FRONT, GL_AMBIENT, tint.getFloatArray(), 0);
+            gl.glMaterialfv(GL_FRONT, GL_DIFFUSE, tint.getFloatArray(), 0);
+            gl.glMaterialfv(GL_FRONT, GL_SPECULAR, Tint.BLACK.getFloatArray(), 0);
+            displayVertex(gl, vertex);
         }
 
         private void changeBasis() {
@@ -222,7 +241,7 @@ public class ConwayLifeSphere extends Frame {
             yAxis.cross(zAxis, xAxis);
             changeBasis();
             gl.glMultMatrixd(matrix, 0);
-			gl.glScaled(vertex.getMagnification(), vertex.getMagnification(), vertex.getMagnification());
+            gl.glScaled(vertex.getMagnification(), vertex.getMagnification(), vertex.getMagnification());
             gl.glCallList(vertex.isCorner() ? pentagonShape : hexagonShape);
             gl.glPopMatrix();
         }
@@ -255,14 +274,18 @@ public class ConwayLifeSphere extends Frame {
         public boolean getCurrent() {
             return current;
         }
+
+        public boolean getPrevious() {
+            return previous;
+        }
     }
 
     public static int createVertexGLShape(GL2 gl, boolean pentagon) {
         int list = gl.glGenLists(1);
         gl.glNewList(list, GL_COMPILE);
-        gl.glMaterialfv(GL_FRONT, GL_AMBIENT, Tint.WHITE.getFloatArray(), 0);
-        gl.glMaterialfv(GL_FRONT, GL_DIFFUSE, Tint.WHITE.getFloatArray(), 0);
-        gl.glMaterialfv(GL_FRONT, GL_SPECULAR, Tint.BLACK.getFloatArray(), 0);
+//        gl.glMaterialfv(GL_FRONT, GL_AMBIENT, Tint.WHITE.getFloatArray(), 0);
+//        gl.glMaterialfv(GL_FRONT, GL_DIFFUSE, Tint.WHITE.getFloatArray(), 0);
+//        gl.glMaterialfv(GL_FRONT, GL_SPECULAR, Tint.BLACK.getFloatArray(), 0);
         gl.glMaterialf(GL_FRONT, GL_SHININESS, 0f);
         gl.glBegin(GL_TRIANGLES);
         gl.glNormal3f(0, 0, 1);

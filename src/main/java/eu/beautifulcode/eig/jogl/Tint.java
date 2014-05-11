@@ -42,10 +42,11 @@ public class Tint {
         this.c[2] = tint.c[2];
     }
 
-    public void set(Tint tintA, Tint tintB, float interpolation) {
+    public Tint set(Tint tintA, Tint tintB, float interpolation) {
         c[0] = tintA.getRed() * (1 - interpolation) + tintB.getRed() * interpolation;
         c[1] = tintA.getGreen() * (1 - interpolation) + tintB.getGreen() * interpolation;
         c[2] = tintA.getBlue() * (1 - interpolation) + tintB.getBlue() * interpolation;
+        return this;
     }
 
     public float getRed() {
